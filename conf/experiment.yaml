@@ -44,7 +44,7 @@ hydra:
       file:
         class: logging.FileHandler
         formatter: simple
-        filename: ${meta.exp_dir}/run.log # ${meta.timestamp}-${hydra.job.name}.log
+        filename: ${meta.exp_dir}/${meta.timestamp}-run.log # ${meta.timestamp}-${hydra.job.name}.log
         mode: "w"
     root:
       level: INFO

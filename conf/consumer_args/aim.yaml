@@ -2,6 +2,6 @@ repo_path: "."
 exp_dir_path: dvc-stages-outputs
 consumer:
   _target_: dvc_mlops.aim_utils.consumer.AimConsumer
-  experiment: seasonal-${dvc-pipeline.params.meta.experiment}-${dataset.name}-${model.name}
+  experiment: ${dvc-pipeline.params.meta.experiment}-${dataset.name}-${model.name}
   repo_path: "."
 figures_cfg: ${dvc-pipeline.figures_cfg}
