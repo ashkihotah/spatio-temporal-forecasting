@@ -18,7 +18,7 @@ WD_ANGLES: Dict[str, float] = {
     'W': 270.0, 'WNW': 292.5, 'NW': 315.0, 'NNW': 337.5
 }
 
-def gemini_preprocess(df: pd.DataFrame) -> pd.DataFrame:
+def my_preprocess(df: pd.DataFrame) -> pd.DataFrame:
     data = df.copy()
     
     # -------------------------------------------------------------------------
@@ -118,9 +118,13 @@ def main(ctx: StageContextManager):
     n_nodes = len(final_df)
 
     final_df = pd.concat(final_df, axis=0)
-    preprocessed_df = gemini_preprocess(final_df)
+    preprocessed_df = my_preprocess(final_df)
     # for col in preprocessed_df.columns:
     #     print(f"Min and Max of {col}: {preprocessed_df[col].min()} - {preprocessed_df[col].max()}")
+
+    # remove PM10 column if it exists
+    if "PM10" in preprocessed_df.columns:
+        preprocessed_df.drop(columns=["PM10"], inplace=True)
 
     tensor_data = preprocessed_df.to_numpy(dtype=np.float32)
 

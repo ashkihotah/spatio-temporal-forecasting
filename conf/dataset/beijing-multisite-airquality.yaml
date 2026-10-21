@@ -13,7 +13,7 @@ all_scalers:
         scalers_classes:
           - Log1pScaler
           - StandardScaler
-      - *pollutants_scaler # PM10
+      # - *pollutants_scaler # PM10
       - *pollutants_scaler # SO2
       - *pollutants_scaler # NO2
       - *pollutants_scaler # CO
@@ -39,7 +39,7 @@ all_scalers:
     cfg:
       - &minmax_scaler # PM2.5
         _target_: experiments.kerass.layers.scaling.MinMaxScaler.from_numpy
-      - *minmax_scaler # PM10
+      # - *minmax_scaler # PM10
       - *minmax_scaler # SO2
       - *minmax_scaler # NO2
       - *minmax_scaler # CO
