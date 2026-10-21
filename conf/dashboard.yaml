@@ -1,0 +1,30 @@
+defaults:
+  - _self_
+
+cache_path: .meta/hpo_trials.parquet
+
+# Custom objective aggregators exposed in the HPO dashboard.
+#
+# Each entry under `aggregators:` is instantiated (via Hydra) into a callable `fn(row) -> float`,
+# where `row` is a trial's metric row. The entry KEY is the objective name shown in the dropdown.
+# Use `_partial_: true` for plain functions so the extra kwargs are bound and `row` is passed at
+# call time. Add your own functions in `dvc_mlops.dashboard.aggregators` (or anywhere
+# importable) and reference them here.
+aggregators:
+
+  mae_rmse_mean:
+    _target_: dvc_mlops.metrics.weighted_sum
+    _partial_: true
+    weights:
+      global_mae: 0.5
+      global_rmse: 0.5
+
+  mae_rmse_hmean:
+    _target_: dvc_mlops.metrics.harmonic_mean
+    _partial_: true
+    metrics: [global_mae, global_rmse]
+
+  error_gmean:
+    _target_: dvc_mlops.metrics.geometric_mean
+    _partial_: true
+    metrics: [global_mae, global_rmse, global_smape]

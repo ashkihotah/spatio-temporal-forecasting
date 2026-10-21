@@ -1,0 +1,6 @@
+# buffer: 30
+train_ratio: 0.9
+val_ratio: 0.05
+test_ratio: 0.05
+# allow_partial_batches: true
+# batch_size: 32

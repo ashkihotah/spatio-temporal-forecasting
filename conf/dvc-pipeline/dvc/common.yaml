@@ -1,0 +1,27 @@
+stages:
+  prepare:
+    cmd: >-
+      python -m experiments.stages.prepare
+    deps:
+    - \${src}/stages/prepare.py
+    - \${paths.dataset_path}
+    params:
+    - prepare
+    - paths.dataset_path
+    - paths.X_path
+    - paths.Y_path
+    outs:
+    - \${exp_dir_path}/prepare
+
+  split:
+    cmd: >-
+      python -m experiments.stages.split.seasonal_folds
+    deps:
+    - \${src}/stages/split/seasonal_folds.py
+    params:
+    - split
+    - paths.train_indexes_path
+    - paths.test_indexes_path
+    - paths.val_indexes_path
+    outs:
+    - \${exp_dir_path}/split

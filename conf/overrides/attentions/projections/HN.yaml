@@ -1,0 +1,11 @@
+# @package _global_
+
+model:  
+  attention_config:
+    query_indipendent_axes: [1]
+    keys_indipendent_axes: [1,2]
+    values_indipendent_axes: [1,2]
+  
+  all_EDs:
+    STAED:
+      proj_prefix: "HN"

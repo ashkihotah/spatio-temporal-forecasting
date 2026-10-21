@@ -1,0 +1,7 @@
+_target_: dvc_mlops.overrides.from_aim.get_best_exp_overrides
+override_keys:
+  - train.compile.optimizer.learning_rate
+  - train.fit.batch_size
+aim_query: run.experiment=='GAP-LSTM' and metric.name in ['global_mae', 'global_rmse', 'global_smape', 'training_time_seconds']
+key: global_mae
+ascending: true

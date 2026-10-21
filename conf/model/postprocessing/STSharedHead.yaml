@@ -1,0 +1,8 @@
+file_deps:
+  - \${src}/kerass/layers/postprocessing/STSharedHead.py
+
+cfg:
+  _target_: experiments.kerass.layers.postprocessing.STSharedHead
+  output_dim: 1
+
+name: "-SH"

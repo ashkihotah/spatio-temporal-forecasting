@@ -1,0 +1,174 @@
+# @package _global_
+
+plots:
+  enc_morans:
+    id: enc_morans_plot
+    cfg:
+      _target_: experiments.plotlyy.get_morans_plot
+      deps:
+        hidden_states: ${pipeline.params.paths.enc_hidden_states_dump_path}
+        adj_path: ${pipeline.params.paths.adj_path}
+      name: "Encoder Morans I over Timesteps"
+    
+  dec_morans:
+    id: dec_morans_plot
+    cfg:
+      _target_: experiments.plotlyy.get_morans_plot
+      deps:
+        hidden_states: ${pipeline.params.paths.dec_hidden_states_dump_path}
+        adj_path: ${pipeline.params.paths.adj_path}
+      name: "Decoder Morans I over Timesteps"
+
+  enc_tsne:
+    id: enc_tsne_plots
+    cfg:
+      _target_: experiments.plotlyy.get_tsne_plots
+      deps:
+        embeddings_path: ${pipeline.params.paths.enc_embeddings_dump_path}
+        routing_weights_path: ${pipeline.params.paths.encoder_routing_weights_dump_path}
+      name: "Encoder t-SNE"
+      title_prefix: "Encoder Head"
+
+  dec_tsne:
+    id: dec_tsne_plots
+    cfg:
+      _target_: experiments.plotlyy.get_tsne_plots
+      deps:
+        embeddings_path: ${pipeline.params.paths.dec_embeddings_dump_path}
+        routing_weights_path: ${pipeline.params.paths.routing_weights_dump_path}
+      name: "Decoder t-SNE"
+      title_prefix: "Decoder Head"
+
+  prediction:
+    id: prediction_plots
+    cfg:
+      _target_: experiments.plotlyy.get_prediction_plots
+      deps:
+        decoder_preds_path: ${pipeline.params.paths.decoder_preds_dump_path}
+        encoder_preds_path: ${pipeline.params.paths.encoder_preds_dump_path}
+        Y_path: ${pipeline.params.paths.Y_path}
+        X_path: ${pipeline.params.paths.X_path}
+        test-indexes-path: ${pipeline.params.paths.test_indexes_path}
+      test_indexes: ${dataset.test_indexes}
+
+  attention:
+    id: attention_plots
+    cfg:
+      _target_: experiments.plotlyy.get_attention_plots
+      deps:
+        attw_path: ${pipeline.params.paths.attw_dump_path}
+  
+  routing_weights:
+    id: routing_weights_plots
+    cfg:
+      _target_: experiments.plotlyy.get_routing_weights_plots
+      deps:
+        routing_weights_path: ${pipeline.params.paths.routing_weights_dump_path}
+
+
+framework:
+  keras:
+    losses:
+      mae:
+        file_deps: []
+        cfg:
+          decoder_outputs:
+            _target_: keras.losses.MeanAbsoluteError
+          encoder_outputs: # null
+            _target_: keras.losses.MeanAbsoluteError
+      dlma:
+        file_deps:
+          - \${src}/kerass/losses/DynamicLossMaskAnnealing.py
+          - \${src}/kerass/callbacks.py
+        cfg:
+          encoder_outputs: 
+            _target_: keras.losses.MeanAbsoluteError
+          decoder_outputs:
+            _target_: experiments.kerass.losses.DynamicLossMaskAnnealing
+            mode: "batch"
+            schedule: "step"
+    
+    selected_loss: mae
+
+    file_deps:
+      train_fn: \${src}/stages/train/kerass.py
+      test_fn: \${src}/stages/test/kerass.py
+      framework_training_specific: ${framework.keras.losses.${framework.keras.selected_loss}.file_deps}
+    params:
+      train:
+        fn: experiments.stages.train.kerass.train
+
+        compile:
+          loss: ${framework.keras.losses.${framework.keras.selected_loss}.cfg}
+          metrics: &metrics
+            # encoder_outputs: null
+            #   - _target_: keras.metrics.MeanAbsoluteError
+            decoder_outputs:
+              - _target_: keras.metrics.MeanAbsoluteError
+                name: "scaled_mae"
+              - _target_: keras.metrics.RootMeanSquaredError
+                name: "scaled_rmse"
+              - _target_: experiments.kerass.metrics.SymmetricMeanAbsolutePercentageError
+                name: "scaled_smape"
+          run_eagerly: false
+          optimizer:
+            _target_: tensorflow.keras.optimizers.Adam
+            learning_rate: 0.01
+
+        fit:
+          batch_size: 64
+          epochs: 50
+          callbacks:
+            # _target_: experiments.utils.dict_values_to_list
+            - _target_: keras.callbacks.ModelCheckpoint
+              filepath: ${pipeline.params.paths.model_path}
+              monitor: val_decoder_outputs_scaled_mae
+              save_best_only: true
+              save_weights_only: true
+              mode: min
+              initial_value_threshold: 0.065
+              verbose: 1
+
+      test:
+        fn: experiments.stages.test.kerass.test
+        batch_size: 512
+        compile:
+          loss:
+            encoder_outputs: null
+            decoder_outputs:
+              _target_: keras.losses.MeanAbsoluteError
+          metrics: *metrics
+
+model:
+  gnns:
+    GCN:
+      file_deps:
+        - \${src}/kerass/layers/gnn/GraphConv.py
+      cfg:
+        gnn_type: spektral
+        activation: null
+        use_bias: true
+    GAT:
+      file_deps:
+        - \${src}/kerass/layers/gnn/GAT.py
+      cfg:
+        gnn_type: gat
+        skipconn: false
+        normalize: false
+    GCNSKIPCONN:
+      file_deps:
+        - \${src}/kerass/layers/gnn/GCNSKIPCONN.py
+      cfg:
+        gnn_type: GCNSKIPCONN
+        activation: null
+        use_bias: true
+    MoE-GCN:
+      file_deps:
+        - \${src}/kerass/layers/gnn/MoeGraphConv.py
+        - \${src}/kerass/layers/routers/MoeRouter.py
+      cfg:
+        gnn_type: moe_spektral
+        activation: null
+        use_bias: true
+        num_experts: 8
+        top_k: 3

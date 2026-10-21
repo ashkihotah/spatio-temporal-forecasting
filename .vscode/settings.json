@@ -1,0 +1,7 @@
+{
+    "files.exclude": {
+        "**/.git": false
+    },
+    "search.useIgnoreFiles": true,
+    "editor.rulers": [80]
+}

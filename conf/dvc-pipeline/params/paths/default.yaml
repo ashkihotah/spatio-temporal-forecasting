@@ -1,0 +1,12 @@
+dataset_path: dvc-stages-outputs/${dataset.name}/${dataset.name}.npz
+adj_path: dvc-stages-outputs/${dataset.name}/closeness-${dataset.name}.npy
+
+X_path: dvc-stages-outputs/prepare/X.npy
+Y_path: dvc-stages-outputs/prepare/Y.npy
+
+train_indexes_path: dvc-stages-outputs/split/train-indexes.npy
+val_indexes_path: dvc-stages-outputs/split/val-indexes.npy
+test_indexes_path: dvc-stages-outputs/split/test-indexes.npy
+
+exp_dir_path: dvc-stages-outputs
+scalers_path: dvc-stages-outputs/train/scalers.yaml

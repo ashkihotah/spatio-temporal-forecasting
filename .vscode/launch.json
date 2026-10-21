@@ -1,0 +1,23 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Current File (.venv)",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "python": "${command:python.interpreterPath}",
+            "justMyCode": false,
+            "subProcess": true,
+            "args": [
+                "model/cell/cell@model.encoder_cell.cell=LSTM",
+                "overrides/cell-input-data-distribution=different",
+                "model/postprocessing=STSharedHead"
+            ],
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            }
+        }
+    ]
+}

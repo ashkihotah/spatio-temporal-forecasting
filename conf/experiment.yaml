@@ -1,0 +1,55 @@
+defaults:
+  - _self_
+  - /vars
+  - dvc-pipeline: validation
+  - dataset: beijing-multisite-airquality
+  - model: ED
+  - consumer_args: aim
+  - /overrides/cell-input-data-distribution: different
+  - /overrides/attentions: None
+
+params:
+  dataset:
+    use_exogenous_features: true
+    shift_targets_in_encoder_inputs: true
+    use_time_features: true
+
+pipeline:
+  params: ${merge_dict_cfgs:${dataset.params},${model.params},${dvc-pipeline.params},${framework.${model.framework}.params},${params}}
+  dvc: ${merge_dict_cfgs:${dataset.dvc},${dvc-pipeline.dvc}}
+
+cmd: ["dvc", "repro"] # "--no-commit", "--single-item", "--force"
+# cmd: ["dvc", "exp", "run"]
+
+meta:
+  folder: .meta/${dvc-pipeline.params.meta.experiment}
+  exp_dir: ${meta.folder}/${dataset.name}/${model.name}/
+  timestamp: ${now:%Y-%m-%d-%H-%M-%S}
+
+hydra:
+  output_subdir: null # ${meta.timestamp}-hydra
+  run:
+    dir: ${meta.exp_dir}
+  sweep:
+    dir: .
+    subdir: ${meta.exp_dir}
+  job_logging:
+    version: 1
+    formatters: ${dvc-pipeline.params.logger.formatters}
+    handlers:
+      # console:
+      #   class: logging.StreamHandler
+      #   formatter: simple
+      #   stream: ext://sys.stdout
+      file:
+        class: logging.FileHandler
+        formatter: simple
+        filename: ${meta.exp_dir}/run.log # ${meta.timestamp}-${hydra.job.name}.log
+        mode: "w"
+    root:
+      level: INFO
+      handlers:
+      # - console
+      - file
+    disable_existing_loggers: false
+  # hydra_logging: ${hydra.job_logging}

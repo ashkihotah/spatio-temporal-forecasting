@@ -1,0 +1,68 @@
+defaults:
+  - _self_
+  - dvc: common
+  - params/split: 80-10-10
+  - params/paths: default
+  - params/logger: default
+
+figures_cfg: {}
+
+file_deps:
+  train:
+    - \${src}/stages/train/static.py
+    - \${paths.X_path}
+    - \${paths.Y_path}
+    - \${paths.train_indexes_path}
+    - \${paths.val_indexes_path}
+  
+  test:
+    - \${src}/stages/test/static.py
+    - \${paths.X_path}
+    - \${paths.Y_path}
+    - \${paths.test_indexes_path}
+
+dvc:
+  vars:
+  - src: src/experiments
+  - exp_dir_path: dvc-stages-outputs
+
+  metrics:
+    - \${exp_dir_path}/train-and-test/metrics.yaml
+
+  stages:
+    train-and-test:
+      cmd: >-
+        python -m experiments.stages.train_and_test.static
+      deps: ${concat_lists:${dvc-pipeline.file_deps.train},${dvc-pipeline.file_deps.test},${model.file_deps.arch},${framework.${model.framework}.file_deps.train_fn},${framework.${model.framework}.file_deps.framework_training_specific},${framework.${model.framework}.file_deps.test_fn},"\${src}/stages/train_and_test/static.py"}
+      params:
+        - dataset
+        - model
+        - train
+        - test
+        - paths.model_path
+        - paths.X_path
+        - paths.Y_path
+        - paths.train_indexes_path
+        - paths.val_indexes_path
+        - paths.test_indexes_path
+        - paths.adj_path
+        - paths.test_metrics_path
+      outs:
+        - \${exp_dir_path}/train-and-test
+
+params:
+  meta:
+    pipeline: static
+    experiment: validation
+
+  prepare:
+    replicate_nodes: 0
+    mini_dataset: false
+
+  train:
+    dump_learning_curves: true
+    dump_training_time: true
+  
+  paths:
+    model_path: dvc-stages-outputs/train-and-test/${model.params.model.filename}
+    test_metrics_path: dvc-stages-outputs/train-and-test/metrics.yaml

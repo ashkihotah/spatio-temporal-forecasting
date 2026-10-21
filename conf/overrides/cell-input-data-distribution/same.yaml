@@ -1,0 +1,8 @@
+# @package _global_
+
+params:
+  meta:
+    ed-cell-input-data-distribution: same
+  dataset:
+    use_exogenous_features: True
+    shift_targets_in_encoder_inputs: True

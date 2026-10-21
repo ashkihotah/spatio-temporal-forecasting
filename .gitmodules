@@ -1,0 +1,3 @@
+[submodule "external/dvc-mlops"]
+	path = external/dvc-mlops
+	url = https://github.com/ashkihotah/dvc-mlops.git

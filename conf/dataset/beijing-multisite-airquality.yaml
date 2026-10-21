@@ -1,0 +1,145 @@
+
+all_scalers:
+  gemini:
+    file_deps:
+      - \${src}/kerass/layers/scaling/MinMaxScaler.py
+      - \${src}/kerass/layers/scaling/IdentityScaler.py
+      - \${src}/kerass/layers/scaling/StandardScaler.py
+      - \${src}/kerass/layers/scaling/Log1pScaler.py
+      - \${src}/kerass/layers/scaling/SequentialScaler.py
+    cfg:
+      - &pollutants_scaler
+        _target_: experiments.kerass.layers.scaling.SequentialScaler.from_numpy # PM2.5
+        scalers_classes:
+          - Log1pScaler
+          - StandardScaler
+      - *pollutants_scaler # PM10
+      - *pollutants_scaler # SO2
+      - *pollutants_scaler # NO2
+      - *pollutants_scaler # CO
+      - *pollutants_scaler # O3
+      - _target_: experiments.kerass.layers.scaling.StandardScaler.from_numpy # TEMP
+      - _target_: experiments.kerass.layers.scaling.StandardScaler.from_numpy # PRES
+      - _target_: experiments.kerass.layers.scaling.StandardScaler.from_numpy # DEWP
+      - _target_: experiments.kerass.layers.scaling.MinMaxScaler.from_numpy # WSPM
+      - _target_: experiments.kerass.layers.scaling.IdentityScaler.from_numpy # RAIN_ind
+      - _target_: experiments.kerass.layers.scaling.StandardScaler.from_numpy # RAIN_int
+      - _target_: experiments.kerass.layers.scaling.IdentityScaler.from_numpy # hour_sin
+      - _target_: experiments.kerass.layers.scaling.IdentityScaler.from_numpy # hour_cos
+      - _target_: experiments.kerass.layers.scaling.IdentityScaler.from_numpy # month_sin
+      - _target_: experiments.kerass.layers.scaling.IdentityScaler.from_numpy # month_cos
+      - _target_: experiments.kerass.layers.scaling.IdentityScaler.from_numpy # day_sin
+      - _target_: experiments.kerass.layers.scaling.IdentityScaler.from_numpy # day_cos
+      - _target_: experiments.kerass.layers.scaling.IdentityScaler.from_numpy # wd_sin
+      - _target_: experiments.kerass.layers.scaling.IdentityScaler.from_numpy # wd_cos
+  minmax:
+    file_deps:
+      - \${src}/kerass/layers/scaling/MinMaxScaler.py
+      - \${src}/kerass/layers/scaling/IdentityScaler.py
+    cfg:
+      - &minmax_scaler # PM2.5
+        _target_: experiments.kerass.layers.scaling.MinMaxScaler.from_numpy
+      - *minmax_scaler # PM10
+      - *minmax_scaler # SO2
+      - *minmax_scaler # NO2
+      - *minmax_scaler # CO
+      - *minmax_scaler # O3
+      - *minmax_scaler # TEMP
+      - *minmax_scaler # PRES
+      - *minmax_scaler # DEWP
+      - *minmax_scaler # WSPM
+      - _target_: experiments.kerass.layers.scaling.IdentityScaler.from_numpy # RAIN_ind
+      - *minmax_scaler # RAIN_int
+      - _target_: experiments.kerass.layers.scaling.IdentityScaler.from_numpy # hour_sin
+      - _target_: experiments.kerass.layers.scaling.IdentityScaler.from_numpy # hour_cos
+      - _target_: experiments.kerass.layers.scaling.IdentityScaler.from_numpy # month_sin
+      - _target_: experiments.kerass.layers.scaling.IdentityScaler.from_numpy # month_cos
+      - _target_: experiments.kerass.layers.scaling.IdentityScaler.from_numpy # day_sin
+      - _target_: experiments.kerass.layers.scaling.IdentityScaler.from_numpy # day_cos
+      - _target_: experiments.kerass.layers.scaling.IdentityScaler.from_numpy # wd_sin
+      - _target_: experiments.kerass.layers.scaling.IdentityScaler.from_numpy # wd_cos
+
+selected_scalers: ${dataset.all_scalers.${.params.meta.scaler}}
+
+test_indexes:
+  - 2 # altieri sample index: 109
+  - 3 # altieri sample index: 110
+  - 21 # altieri sample index: 111
+  - 24 # altieri sample index: 112
+  - 35 # altieri sample index: 113
+  - 37 # altieri sample index: 114
+  - 43 # altieri sample index: 115
+  - 65 # altieri sample index: 120
+  - 78 # altieri sample index: 121
+  - 79 # altieri sample index: 122
+  - 83 # altieri sample index: 123
+  - 92 # altieri sample index: 128
+  - 99 # altieri sample index: 129
+  - 102 # altieri sample index: 130
+  - 103 # altieri sample index: 131
+  - 106 # altieri sample index: 132
+  - 119 # altieri sample index: 133
+  - 128 # altieri sample index: 134
+  - 142 # altieri sample index: 139
+  - 146 # altieri sample index: 140
+  - 165 # altieri sample index: 141
+  - 171 # altieri sample index: 142
+  - 175 # altieri sample index: 143
+  - 176 # altieri sample index: 144
+  - 181 # altieri sample index: 145
+
+n_nodes: 12
+n_features: ${get_n_features:14,${params.dataset.use_time_features}}
+name: beijing-multisite-airquality
+
+params:
+  meta:
+    dataset: beijing-multisite-airquality
+    scaler: minmax
+
+  paths:
+    bma_dir_path: dvc-stages-outputs/beijing-multisite-airquality/raw
+    dataset_path: dvc-stages-outputs/beijing-multisite-airquality/preprocessed.npz
+
+  prepare:
+    h: 6
+    p: 6
+    stride: 6
+    
+  split:
+      seasonal_folds:
+        train:
+          - [spring, [0, 91]]
+          - [summer, [92, 183]]
+          - [autumn, [184, 274]]
+          - [winter, [275, 364]]
+
+          - [spring, [365, 456]]
+          - [summer, [457, 548]]
+          - [autumn, [549, 639]]
+          - [winter, [640, 729]]
+
+          - [spring, [730, 821]]
+          - [summer, [822, 913]]
+          - [autumn, [914, 1004]]
+          - [winter, [1005, 1095]]
+          
+        non_train:
+          - [spring, [1096, 1187]]
+          - [summer, [1188, 1279]]
+          - [autumn, [1280, 1370]]
+          - [winter, [1371, 1460]]
+
+dvc:
+  stages:
+    beijing-multisite-airquality:
+      cmd: >-
+        python -m experiments.stages.preprocess.beijing_multisite_airquality
+      deps:
+        - \${src}/stages/preprocess/beijing_multisite_airquality.py
+        - \${paths.bma_dir_path}
+      params:
+        - paths.bma_dir_path
+        - paths.dataset_path
+      outs:
+        - \${paths.dataset_path}

@@ -1,0 +1,8 @@
+file_deps:
+  - \${src}/kerass/layers/postprocessing/STReshapedHead.py
+
+cfg:
+  _target_: experiments.kerass.layers.postprocessing.STReshapedHead
+  output_dim: ${dataset.n_nodes}
+
+name: "-RH"

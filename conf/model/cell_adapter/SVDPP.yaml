@@ -1,0 +1,9 @@
+
+file_deps:
+  - \${src}/kerass/layers/sequences/cells/spatio_temporal/SVDPPAdapter.py
+
+cfg:
+  _target_: experiments.kerass.layers.sequences.cells.spatio_temporal.SVDPPAdapter
+  order: 3
+
+name: SVDPP-

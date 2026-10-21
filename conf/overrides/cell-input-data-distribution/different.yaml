@@ -1,0 +1,22 @@
+# @package _global_
+
+model:
+  all_EDs:
+    STED:
+      cfg:
+        use_encoder_last_outputs_as_decoder_initial_outputs: True
+    STAED:
+      cfg:
+        use_encoder_last_outputs_as_decoder_initial_outputs: True
+  encoder_cell:
+    cell:
+      cfg:
+        output_dim: null
+  name: HSAR-${model.all_EDs.${model.selected_ED}.name}
+
+params:
+  meta:
+    ed-cell-input-data-distribution: different
+  dataset:
+    use_exogenous_features: False
+    shift_targets_in_encoder_inputs: False

@@ -1,0 +1,2 @@
+_target_: optuna.samplers.RandomSampler
+seed: 64

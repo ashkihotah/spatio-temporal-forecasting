@@ -1,3 +1,11 @@
+# =========== START Custom project files ===========
+
+.aim
+.meta
+dvc-stages-outputs/.temp
+
+# =========== END Custom project files ===========
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]

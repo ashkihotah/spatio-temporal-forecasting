@@ -1,0 +1,44 @@
+default_gnn: GCSKIPCONN
+
+selected_fx_gnn: ${.default_gnn}
+selected_fh_gnn: ${.default_gnn}
+selected_ix_gnn: ${.default_gnn}
+selected_ih_gnn: ${.default_gnn}
+selected_cx_gnn: ${.default_gnn}
+selected_ch_gnn: ${.default_gnn}
+selected_ox_gnn: ${.default_gnn}
+selected_oh_gnn: ${.default_gnn}
+
+selected_i_gnn: ${.default_gnn}
+selected_g_gnn: ${.default_gnn}
+selected_o_gnn: ${.default_gnn}
+selected_im_gnn: ${.default_gnn}
+selected_gm_gnn: ${.default_gnn}
+selected_om_gnn: ${.default_gnn}
+
+gnns_file_deps: ${concat_lists:${model.gnns.${.selected_fx_gnn}.file_deps},${model.gnns.${.selected_fh_gnn}.file_deps},${model.gnns.${.selected_ix_gnn}.file_deps},${model.gnns.${.selected_ih_gnn}.file_deps},${model.gnns.${.selected_cx_gnn}.file_deps},${model.gnns.${.selected_ch_gnn}.file_deps},${model.gnns.${.selected_ox_gnn}.file_deps},${model.gnns.${.selected_oh_gnn}.file_deps},${model.gnns.${.selected_i_gnn}.file_deps},${model.gnns.${.selected_g_gnn}.file_deps},${model.gnns.${.selected_o_gnn}.file_deps},${model.gnns.${.selected_im_gnn}.file_deps},${model.gnns.${.selected_gm_gnn}.file_deps},${model.gnns.${.selected_om_gnn}.file_deps}}
+
+file_deps: ${concat_lists:"\${src}/kerass/layers/sequences/cells/spatio_temporal/GAPLSTMCell.py","\${src}/kerass/layers/sequences/cells/spatio_temporal/GAPLSTMWithMemoryCell.py",${.gnns_file_deps}}
+
+cfg:
+  _target_: experiments.kerass.layers.sequences.cells.spatio_temporal.GAPLSTMWithMemoryCell
+  states_dim: ${dataset.n_features}
+  output_dim: 1
+  gcnlstm_cell_config:
+    fx_gnn_config: ${model.gnns.${...selected_fx_gnn}.cfg}
+    fh_gnn_config: ${model.gnns.${...selected_fh_gnn}.cfg}
+    ix_gnn_config: ${model.gnns.${...selected_ix_gnn}.cfg}
+    ih_gnn_config: ${model.gnns.${...selected_ih_gnn}.cfg}
+    cx_gnn_config: ${model.gnns.${...selected_cx_gnn}.cfg}
+    ch_gnn_config: ${model.gnns.${...selected_ch_gnn}.cfg}
+    ox_gnn_config: ${model.gnns.${...selected_ox_gnn}.cfg}
+    oh_gnn_config: ${model.gnns.${...selected_oh_gnn}.cfg}
+  i_gnn_config: ${model.gnns.${..selected_i_gnn}.cfg}
+  g_gnn_config: ${model.gnns.${..selected_g_gnn}.cfg}
+  o_gnn_config: ${model.gnns.${..selected_o_gnn}.cfg}
+  im_gnn_config: ${model.gnns.${..selected_im_gnn}.cfg}
+  gm_gnn_config: ${model.gnns.${..selected_gm_gnn}.cfg}
+  om_gnn_config: ${model.gnns.${..selected_om_gnn}.cfg}
+  return_hidden_state: true
+
+name: M${.default_gnn}-LSTM

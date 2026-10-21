@@ -1,0 +1,8 @@
+file_deps:
+  - \${src}/kerass/layers/preprocessing/NormFF.py
+
+cfg:
+  _target_: experiments.kerass.layers.preprocessing.NormFF
+  ff_units: ${dataset.n_features}
+
+name: NormFF-

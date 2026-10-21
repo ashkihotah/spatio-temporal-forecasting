@@ -1,0 +1,20 @@
+defaults:
+  - _self_
+  - cell@all_experts.GAP-LSTM: GAP-LSTM
+  - cell@all_experts.GRU: GRU
+  - cell@all_experts.LSTM: LSTM
+
+experts:
+  - LSTM
+  - GAP-LSTM
+routing_cfg:
+  top_k: 3
+  aux_loss_weight: 0.1
+  z_loss_weight: 0.1
+  router_feature_indices: null
+  return_routing_weights: true
+result: ${get_cmoe_cfg:${model.cell.experts},${model.cell.all_experts},${model.cell.routing_cfg}}
+
+file_deps: ${model.cell.result.file_deps}
+cfg: ${model.cell.result.cfg}
+name: ${model.cell.result.name}

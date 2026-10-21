@@ -1,0 +1,52 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "experiments"
+version = "0.0.1"
+description = "Add your description here"
+readme = "README.md"
+requires-python = "==3.12.*"
+authors = [
+    { name = "Nicolò Resta", email = "n.resta6@studenti.uniba.it" }
+]
+dependencies = [
+    # ============== (START) CRITICAL PINNED VERSIONS ==============
+    # "tensorflow[and-cuda]==2.16.1",      # Latest stable TF without Protobuf 5 defaults
+    # ============== (END) CRITICAL PINNED VERSIONS ==============
+    # "nvidia-cuda-nvcc-cu12",
+    # "nvidia-cuda-nvrtc-cu12",
+    # "nvidia-ml-py>=13.595.45",
+    "psycopg2-binary",
+    "tensorflow",
+    # "tensorflow-metal",
+    "ipywidgets",
+    "ipykernel",
+    "dvc-mlops",
+    "nbformat>=5.10.4",
+]
+
+[dependency-groups]
+dev = [
+]
+
+[tool.uv.sources]
+# torch = [
+#     { index = "pytorch-cu128" },
+# ]
+# aim = { git = "https://github.com/aimhubio/aim.git", rev = "main" }
+dvc-mlops = { workspace = true }
+
+[tool.uv.workspace]
+members = [
+    "external/dvc-mlops",
+]
+
+# [[tool.uv.index]]
+# name = "pytorch-cu128"
+# url = "https://download.pytorch.org/whl/cu128"
+# explicit = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/experiments"]

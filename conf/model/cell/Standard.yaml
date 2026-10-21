@@ -1,0 +1,7 @@
+defaults:
+  - _self_
+  - cell: LSTM
+
+file_deps: ${.cell.file_deps}
+cfg: ${.cell.cfg}
+name: ${.cell.name}

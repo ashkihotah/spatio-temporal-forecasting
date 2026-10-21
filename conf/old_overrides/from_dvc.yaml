@@ -1,0 +1,9 @@
+_target_: dvc_mlops.dvc_utils.overrides.get_best_exp_overrides
+metric_columns:
+  - global_mae
+  - global_rmse
+  - global_smape
+  - training_time_seconds
+objectives: global_mae
+directions: minimize
+group_key_value: ${pipeline.params.meta.dataset}-${pipeline.params.meta.model}

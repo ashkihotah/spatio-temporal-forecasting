@@ -1,0 +1,25 @@
+# @package _global_
+
+defaults:
+  - _self_
+  - /hpo/study/sampler: bayesian
+  - /hpo/params: ${pipeline/params/model}
+
+metrics_to_optimize: global_mae
+track_start_datetime: true
+
+# study_id is the sole identifier of an HPO study for the meta-analysis dashboard.
+# Choose distinct ids for studies that differ in sampler / pruner / search-space bounds,
+# since these meta-details are intentionally not recorded separately (deferred).
+# Override per study, e.g.: pipeline.params.meta.study_id=lr-batch_size-bayesian
+pipeline:
+  params:
+    meta:
+      study_id: ${hpo.study.sampler._target_}
+
+hpo:
+  study:
+    direction: minimize
+
+  optimize:
+    n_trials: 2

@@ -1,0 +1,103 @@
+defaults:
+  - _self_
+  - dvc: common
+  - params/split: 80-10-10
+  - params/paths: default
+  - params/logger: default
+
+figures_cfg:
+  test:
+    - ${plots.enc_morans}
+    - ${plots.dec_morans}
+    - ${plots.enc_tsne}
+    - ${plots.dec_tsne}
+    - ${plots.prediction}
+    - ${plots.attention}
+    - ${plots.routing_weights}
+
+file_deps:
+  train:
+    - \${src}/stages/train/static.py
+    - \${paths.X_path}
+    - \${paths.Y_path}
+    - \${paths.train_indexes_path}
+    - \${paths.val_indexes_path}
+  
+  test:
+    - \${src}/stages/test/static.py
+    - \${paths.X_path}
+    - \${paths.Y_path}
+    - \${paths.test_indexes_path}
+    - \${paths.model_path}
+    - \${src}/plotlyy/preds_vs_ground_truths.py
+
+dvc:
+  vars:
+  - src: src/experiments
+  - exp_dir_path: dvc-stages-outputs
+
+  metrics:
+    - \${exp_dir_path}/test/metrics.yaml
+
+  stages:
+    train:
+      cmd: >-
+        python -m experiments.stages.train.static
+      deps: ${concat_lists:${dvc-pipeline.file_deps.train},${model.file_deps.arch},${framework.${model.framework}.file_deps.train_fn},${framework.${model.framework}.file_deps.framework_training_specific}}
+      params:
+        - dataset
+        - model
+        - train
+        - paths.model_path
+        - paths.X_path
+        - paths.Y_path
+        - paths.train_indexes_path
+        - paths.val_indexes_path
+        - paths.adj_path
+      outs:
+        - \${exp_dir_path}/train
+
+    test:
+      cmd: >-
+        python -m experiments.stages.test.static
+      deps: ${concat_lists:${dvc-pipeline.file_deps.test},${model.file_deps.arch},${model.file_deps.plots},${framework.${model.framework}.file_deps.test_fn}}
+      params:
+        - dataset
+        - model
+        - test
+        - paths.model_path
+        - paths.X_path
+        - paths.Y_path
+        - paths.test_indexes_path
+        - paths.adj_path
+        - paths.test_metrics_path
+      outs:
+        - \${exp_dir_path}/test
+
+params:
+  meta:
+    pipeline: static
+    experiment: testing
+
+  prepare:
+    replicate_nodes: 0
+    mini_dataset: false
+
+  train:
+    dump_learning_curves: true
+    dump_training_time: true
+  
+  paths:
+    model_path: dvc-stages-outputs/train/${model.params.model.filename}
+
+    attw_dump_path: dvc-stages-outputs/test/attw.npy
+    enc_hidden_states_dump_path: dvc-stages-outputs/test/enc_hidden_states.npy
+    dec_hidden_states_dump_path: dvc-stages-outputs/test/dec_hidden_states.npy
+    enc_embeddings_dump_path: dvc-stages-outputs/test/enc_embeddings.npy
+    dec_embeddings_dump_path: dvc-stages-outputs/test/dec_embeddings.npy
+    encoder_preds_dump_path: dvc-stages-outputs/test/enc_preds.npy
+    decoder_preds_dump_path: dvc-stages-outputs/test/dec_preds.npy
+    test_metrics_path: dvc-stages-outputs/test/metrics.yaml
+
+    routing_weights_dump_path: dvc-stages-outputs/test/routing_weights.npy
+    encoder_routing_weights_dump_path: dvc-stages-outputs/test/encoder_routing_weights.npy

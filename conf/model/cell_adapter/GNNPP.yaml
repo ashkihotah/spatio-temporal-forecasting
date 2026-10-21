@@ -1,0 +1,13 @@
+selected_gnn: GCN
+
+file_deps:
+  - \${src}/kerass/layers/sequences/cells/spatio_temporal/GNNPPAdapter.py
+
+cfg:
+  _target_: experiments.kerass.layers.sequences.cells.spatio_temporal.GNNPPAdapter
+  gnn:
+    _target_: experiments.kerass.layers.gnn.instantiate_gnn_layer
+    gnn_config: ${model.gnns.${...selected_gnn}.cfg}
+    channels: ${dataset.n_features}
+
+name: GNNPP-

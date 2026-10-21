@@ -1,0 +1,241 @@
+meta:
+  dataset: beijing-multisite-airquality
+  scaler: minmax
+  model: HSAR-NormFF-GCN-LSTM-CH
+  pipeline: static
+  experiment: testing
+  ed-cell-input-data-distribution: different
+paths:
+  bma_dir_path: dvc-stages-outputs/beijing-multisite-airquality/raw/stations
+  dataset_path: dvc-stages-outputs/beijing-multisite-airquality/beijing-multisite-airquality.npz
+  model_path: dvc-stages-outputs/train/HSAR-NormFF-GCN-LSTM-CH.weights.h5
+  attw_dump_path: dvc-stages-outputs/test/attw.npy
+  enc_hidden_states_dump_path: dvc-stages-outputs/test/enc_hidden_states.npy
+  dec_hidden_states_dump_path: dvc-stages-outputs/test/dec_hidden_states.npy
+  enc_embeddings_dump_path: dvc-stages-outputs/test/enc_embeddings.npy
+  dec_embeddings_dump_path: dvc-stages-outputs/test/dec_embeddings.npy
+  encoder_preds_dump_path: dvc-stages-outputs/test/enc_preds.npy
+  decoder_preds_dump_path: dvc-stages-outputs/test/dec_preds.npy
+  test_metrics_path: dvc-stages-outputs/test/metrics.yaml
+  routing_weights_dump_path: dvc-stages-outputs/test/routing_weights.npy
+  encoder_routing_weights_dump_path: dvc-stages-outputs/test/encoder_routing_weights.npy
+  adj_path: dvc-stages-outputs/beijing-multisite-airquality/closeness-beijing-multisite-airquality.npy
+  X_path: dvc-stages-outputs/prepare/X.npy
+  Y_path: dvc-stages-outputs/prepare/Y.npy
+  train_indexes_path: dvc-stages-outputs/split/train-indexes.npy
+  val_indexes_path: dvc-stages-outputs/split/val-indexes.npy
+  test_indexes_path: dvc-stages-outputs/split/test-indexes.npy
+  exp_dir_path: dvc-stages-outputs
+  scalers_path: dvc-stages-outputs/train/scalers.yaml
+prepare:
+  h: 6
+  p: 6
+  stride: 6
+  replicate_nodes: 0
+  mini_dataset: false
+split:
+  seasonal_folds:
+    train:
+    - - spring
+      - - 0
+        - 91
+    - - summer
+      - - 92
+        - 183
+    - - autumn
+      - - 184
+        - 274
+    - - winter
+      - - 275
+        - 364
+    - - spring
+      - - 365
+        - 456
+    - - summer
+      - - 457
+        - 548
+    - - autumn
+      - - 549
+        - 639
+    - - winter
+      - - 640
+        - 729
+    - - spring
+      - - 730
+        - 821
+    - - summer
+      - - 822
+        - 913
+    - - autumn
+      - - 914
+        - 1004
+    - - winter
+      - - 1005
+        - 1095
+    non_train:
+    - - spring
+      - - 1096
+        - 1187
+    - - summer
+      - - 1188
+        - 1279
+    - - autumn
+      - - 1280
+        - 1370
+    - - winter
+      - - 1371
+        - 1460
+  train_ratio: 0.8
+  val_ratio: 0.1
+  test_ratio: 0.1
+model:
+  init:
+    _target_: experiments.kerass.models.ED
+    p: 6
+    encoder_cell:
+      _target_: experiments.kerass.layers.sequences.cells.spatio_temporal.GAPLSTMCell
+      states_dim: 20
+      output_dim: null
+      fx_gnn_config:
+        gnn_type: spektral
+        activation: null
+        use_bias: true
+      fh_gnn_config:
+        gnn_type: spektral
+        activation: null
+        use_bias: true
+      ix_gnn_config:
+        gnn_type: spektral
+        activation: null
+        use_bias: true
+      ih_gnn_config:
+        gnn_type: spektral
+        activation: null
+        use_bias: true
+      cx_gnn_config:
+        gnn_type: spektral
+        activation: null
+        use_bias: true
+      ch_gnn_config:
+        gnn_type: spektral
+        activation: null
+        use_bias: true
+      ox_gnn_config:
+        gnn_type: spektral
+        activation: null
+        use_bias: true
+      oh_gnn_config:
+        gnn_type: spektral
+        activation: null
+        use_bias: true
+      return_hidden_state: true
+    decoder_cell: null
+    use_encoder_last_outputs_as_decoder_initial_outputs: true
+    return_encoder_cell_outputs: true
+    name: encoder_decoder
+  encoder_adapter:
+    _target_: experiments.kerass.layers.sequences.cells.spatio_temporal.NormFFAdapter
+    norm:
+      _target_: keras.layers.LayerNormalization
+      name: norm
+    proj:
+      _target_: keras.layers.Dense
+      units: 20
+      name: projection
+  decoder_adapter: null
+  preprocessing_layer: null
+  postprocessing_layer:
+    _target_: experiments.kerass.layers.postprocessing.STEDConvolution
+    p: 6
+    output_dim: 1
+  apply_enc_adapter_to_decoder_cell: false
+  scalers:
+  - _target_: experiments.kerass.layers.scaling.MinMaxScaler.from_numpy
+  - _target_: experiments.kerass.layers.scaling.MinMaxScaler.from_numpy
+  - _target_: experiments.kerass.layers.scaling.MinMaxScaler.from_numpy
+  - _target_: experiments.kerass.layers.scaling.MinMaxScaler.from_numpy
+  - _target_: experiments.kerass.layers.scaling.MinMaxScaler.from_numpy
+  - _target_: experiments.kerass.layers.scaling.MinMaxScaler.from_numpy
+  - _target_: experiments.kerass.layers.scaling.MinMaxScaler.from_numpy
+  - _target_: experiments.kerass.layers.scaling.MinMaxScaler.from_numpy
+  - _target_: experiments.kerass.layers.scaling.MinMaxScaler.from_numpy
+  - _target_: experiments.kerass.layers.scaling.MinMaxScaler.from_numpy
+  - _target_: experiments.kerass.layers.scaling.IdentityScaler.from_numpy
+  - _target_: experiments.kerass.layers.scaling.MinMaxScaler.from_numpy
+  - _target_: experiments.kerass.layers.scaling.IdentityScaler.from_numpy
+  - _target_: experiments.kerass.layers.scaling.IdentityScaler.from_numpy
+  - _target_: experiments.kerass.layers.scaling.IdentityScaler.from_numpy
+  - _target_: experiments.kerass.layers.scaling.IdentityScaler.from_numpy
+  - _target_: experiments.kerass.layers.scaling.IdentityScaler.from_numpy
+  - _target_: experiments.kerass.layers.scaling.IdentityScaler.from_numpy
+  - _target_: experiments.kerass.layers.scaling.IdentityScaler.from_numpy
+  - _target_: experiments.kerass.layers.scaling.IdentityScaler.from_numpy
+  filename: HSAR-NormFF-GCN-LSTM-CH.weights.h5
+train:
+  dump_learning_curves: true
+  dump_training_time: true
+  fn: experiments.stages.train.kerass.train
+  compile:
+    loss:
+      decoder_outputs:
+        _target_: keras.losses.MeanAbsoluteError
+      encoder_outputs: null
+    metrics:
+      decoder_outputs:
+      - _target_: keras.metrics.MeanAbsoluteError
+        name: scaled_mae
+      - _target_: keras.metrics.RootMeanSquaredError
+        name: scaled_rmse
+      - _target_: experiments.kerass.metrics.SymmetricMeanAbsolutePercentageError
+        name: scaled_smape
+    run_eagerly: false
+    optimizer:
+      _target_: tensorflow.keras.optimizers.Adam
+      learning_rate: 0.01
+  fit:
+    batch_size: 64
+    epochs: 50
+    callbacks:
+    - _target_: keras.callbacks.ModelCheckpoint
+      filepath: dvc-stages-outputs/train/HSAR-NormFF-GCN-LSTM-CH.weights.h5
+      monitor: val_decoder_outputs_scaled_mae
+      save_best_only: true
+      save_weights_only: true
+      mode: min
+      initial_value_threshold: 0.065
+      verbose: 1
+logger:
+  version: 1
+  formatters:
+    simple:
+      format: '[%(asctime)s][%(levelname)s] %(message)s'
+  handlers:
+    console:
+      class: logging.StreamHandler
+      formatter: simple
+      stream: ext://sys.stderr
+  root:
+    level: INFO
+    handlers:
+    - console
+  disable_existing_loggers: false
+test:
+  fn: experiments.stages.test.kerass.test
+  batch_size: 512
+  compile:
+    loss:
+      encoder_outputs: null
+      decoder_outputs:
+        _target_: keras.losses.MeanAbsoluteError
+    metrics:
+      decoder_outputs:
+      - _target_: keras.metrics.MeanAbsoluteError
+        name: scaled_mae
+      - _target_: keras.metrics.RootMeanSquaredError
+        name: scaled_rmse
+      - _target_: experiments.kerass.metrics.SymmetricMeanAbsolutePercentageError
+        name: scaled_smape
+dataset:
+  use_exogenous_features: false
+  shift_targets_in_encoder_inputs: false
+  use_time_features: true

@@ -1,0 +1,133 @@
+all_scalers:
+  gemini:
+    file_deps:
+      - \${src}/kerass/layers/scaling/MinMaxScaler.py
+      - \${src}/kerass/layers/scaling/IdentityScaler.py
+
+    cfg:
+      - _target_: experiments.kerass.layers.scaling.MinMaxScaler # kwh
+        min_val: 0.0
+        max_val: 1000.0
+      - _target_: experiments.kerass.layers.scaling.MinMaxScaler.from_numpy # temperature
+      - _target_: experiments.kerass.layers.scaling.MinMaxScaler.from_numpy # irradiance
+      - _target_: experiments.kerass.layers.scaling.MinMaxScaler.from_numpy # pressure
+      - _target_: experiments.kerass.layers.scaling.MinMaxScaler.from_numpy # windspeed
+      - _target_: experiments.kerass.layers.scaling.MinMaxScaler.from_numpy # humidity
+      - _target_: experiments.kerass.layers.scaling.MinMaxScaler.from_numpy # dewpoint
+      - _target_: experiments.kerass.layers.scaling.MinMaxScaler.from_numpy # windbearing
+      - _target_: experiments.kerass.layers.scaling.IdentityScaler.from_numpy # cloudcover
+      - _target_: experiments.kerass.layers.scaling.MinMaxScaler # altitude
+        min_val: -180
+        max_val: 180
+      - _target_: experiments.kerass.layers.scaling.MinMaxScaler # azimuth
+        min_val: -180
+        max_val: 180
+      - _target_: experiments.kerass.layers.scaling.IdentityScaler.from_numpy # hour_sin
+      - _target_: experiments.kerass.layers.scaling.IdentityScaler.from_numpy # hour_cos
+      - _target_: experiments.kerass.layers.scaling.IdentityScaler.from_numpy # month_sin
+      - _target_: experiments.kerass.layers.scaling.IdentityScaler.from_numpy # month_cos
+      - _target_: experiments.kerass.layers.scaling.IdentityScaler.from_numpy # day_sin
+      - _target_: experiments.kerass.layers.scaling.IdentityScaler.from_numpy # day_cos
+
+  minmax:
+    file_deps:
+      - \${src}/kerass/layers/scaling/MinMaxScaler.py
+      - \${src}/kerass/layers/scaling/IdentityScaler.py
+
+    cfg:
+      - _target_: experiments.kerass.layers.scaling.MinMaxScaler.from_numpy # kwh
+      - _target_: experiments.kerass.layers.scaling.MinMaxScaler.from_numpy # temperature
+      - _target_: experiments.kerass.layers.scaling.MinMaxScaler.from_numpy # irradiance
+      - _target_: experiments.kerass.layers.scaling.MinMaxScaler.from_numpy # pressure
+      - _target_: experiments.kerass.layers.scaling.MinMaxScaler.from_numpy # windspeed
+      - _target_: experiments.kerass.layers.scaling.MinMaxScaler.from_numpy # humidity
+      - _target_: experiments.kerass.layers.scaling.MinMaxScaler.from_numpy # dewpoint
+      - _target_: experiments.kerass.layers.scaling.MinMaxScaler.from_numpy # windbearing
+      - _target_: experiments.kerass.layers.scaling.MinMaxScaler.from_numpy # cloudcover
+      - _target_: experiments.kerass.layers.scaling.MinMaxScaler.from_numpy # altitude
+      - _target_: experiments.kerass.layers.scaling.MinMaxScaler.from_numpy # azimuth
+
+      - _target_: experiments.kerass.layers.scaling.IdentityScaler.from_numpy # hour_sin
+      - _target_: experiments.kerass.layers.scaling.IdentityScaler.from_numpy # hour_cos
+      - _target_: experiments.kerass.layers.scaling.IdentityScaler.from_numpy # month_sin
+      - _target_: experiments.kerass.layers.scaling.IdentityScaler.from_numpy # month_cos
+      - _target_: experiments.kerass.layers.scaling.IdentityScaler.from_numpy # day_sin
+      - _target_: experiments.kerass.layers.scaling.IdentityScaler.from_numpy # day_cos
+
+selected_scalers: ${dataset.all_scalers.gemini}
+
+test_indexes:
+  # - 0 # altieri sample index: 45
+  - 18 # altieri sample index: 46
+  # - 22 # altieri sample index: 47
+  # - 23 # altieri sample index: 48
+  # - 30 # altieri sample index: 49
+  # - 31 # altieri sample index: 50
+  - 39 # altieri sample index: 51
+  # - 52 # altieri sample index: 57
+  # - 58 # altieri sample index: 58
+  - 60 # altieri sample index: 59
+  # - 71 # altieri sample index: 60
+  - 76 # altieri sample index: 61
+  # - 101 # altieri sample index: 68
+  # - 124 # altieri sample index: 69
+  - 125 # altieri sample index: 70
+  # - 138 # altieri sample index: 74
+  - 152 # altieri sample index: 75
+  # - 160 # altieri sample index: 76
+  - 178 # altieri sample index: 77
+  - 187 # altieri sample index: 82
+  - 192 # altieri sample index: 83
+  - 201 # altieri sample index: 84
+
+n_nodes: 17
+n_features: ${get_n_features:11,${params.dataset.use_time_features}}
+name: pv-italy
+
+params:
+  meta:
+    dataset: ${dataset.name}
+
+  paths:
+    raw_dir_path: dvc-stages-outputs/pv-italy/raw
+    dataset_path: dvc-stages-outputs/pv-italy/preprocessed.npz
+
+  prepare:
+    h: 19
+    p: 19
+    stride: 19
+
+  split:
+    seasonal_folds:
+      # We merge January and February of 2012 with the following spring season 
+      # since this winter seasonal fold is too short (only 59 days) 
+      # and we want to have 90 days (3 months) for each seasonal fold.
+      # WINTER Jan 1, 2012 - Feb 29, 2012 (Leap year)
+      train:
+        - [winter, [0, 59]]     # Jan 1, 2012 - Feb 29, 2012 (Leap year)
+        - [spring, [60, 151]]   # Mar 1, 2012 - May 31, 2012
+        - [summer, [152, 243]]  # Jun 1, 2012 - Aug 31, 2012
+        - [autumn, [244, 334]]  # Sep 1, 2012 - Nov 30, 2012
+        - [winter, [335, 424]]  # Dec 1, 2012 - Feb 28, 2013
+
+      non_train:
+        - [spring, [425, 516]]  # Mar 1, 2013 - May 31, 2013
+        - [summer, [517, 608]]  # Jun 1, 2013 - Aug 31, 2013
+        - [autumn, [609, 699]]  # Sep 1, 2013 - Nov 30, 2013
+        - [winter, [700, 789]]  # Dec 1, 2013 - Feb 28, 
+
+        - [spring, [790, 855]]  # Mar 1, 2014 - May 5, 2014  
+
+dvc:
+  stages:
+    pv-italy:
+      cmd: >-
+        python -m experiments.stages.preprocess.pv_italy
+      deps:
+        - \${src}/stages/preprocess/pv_italy.py
+        - \${paths.raw_dir_path}
+      params:
+        - paths.raw_dir_path
+        - paths.dataset_path
+      outs:
+        - \${paths.dataset_path}

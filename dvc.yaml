@@ -1,0 +1,116 @@
+stages:
+  beijing-multisite-airquality:
+    cmd: python -m experiments.stages.preprocess.beijing_multisite_airquality
+    deps:
+    - ${src}/stages/preprocess/beijing_multisite_airquality.py
+    - ${paths.bma_dir_path}
+    params:
+    - paths.bma_dir_path
+    - paths.dataset_path
+    outs:
+    - ${paths.dataset_path}
+  train:
+    cmd: python -m experiments.stages.train.static
+    deps:
+    - ${src}/kerass/layers/sequences/arnn.py
+    - ${src}/kerass/layers/scaling/IdentityScaler.py
+    - ${src}/kerass/layers/postprocessing/STEDConvolution.py
+    - ${src}/kerass/layers/sequences/cells/spatio_temporal/GAPLSTMCell.py
+    - ${src}/kerass/layers/sequences/utils.py
+    - ${src}/kerass/layers/sequences/cells/constants.py
+    - ${src}/stages/train/kerass.py
+    - ${paths.Y_path}
+    - ${paths.X_path}
+    - ${paths.train_indexes_path}
+    - ${src}/kerass/layers/sequences/cells/spatio_temporal/AutoregressiveCell.py
+    - ${src}/kerass/models/ED.py
+    - ${src}/kerass/datasets/datasets.py
+    - ${src}/kerass/layers/sequences/cells/spatio_temporal/NormFFAdapter.py
+    - ${src}/kerass/layers/sequences/constants.py
+    - ${src}/kerass/metrics
+    - ${src}/kerass/utils/is_node_a_tensor_shape.py
+    - ${src}/kerass/layers/gnn/GraphConv.py
+    - ${src}/stages/train/static.py
+    - ${src}/kerass/layers/sequences/rnn.py
+    - ${src}/kerass/layers/scaling/MinMaxScaler.py
+    - ${paths.val_indexes_path}
+    params:
+    - dataset
+    - model
+    - train
+    - paths.model_path
+    - paths.X_path
+    - paths.Y_path
+    - paths.train_indexes_path
+    - paths.val_indexes_path
+    - paths.adj_path
+    outs:
+    - ${exp_dir_path}/train
+  test:
+    cmd: python -m experiments.stages.test.static
+    deps:
+    - ${src}/kerass/layers/sequences/arnn.py
+    - ${src}/kerass/layers/scaling/IdentityScaler.py
+    - ${paths.model_path}
+    - ${src}/plotlyy/morans.py
+    - ${src}/kerass/layers/postprocessing/STEDConvolution.py
+    - ${src}/plotlyy/preds_vs_ground_truths.py
+    - ${src}/kerass/layers/sequences/cells/spatio_temporal/GAPLSTMCell.py
+    - ${src}/kerass/layers/sequences/utils.py
+    - ${src}/stages/test/kerass.py
+    - ${src}/kerass/layers/sequences/cells/constants.py
+    - ${paths.Y_path}
+    - ${paths.test_indexes_path}
+    - ${paths.X_path}
+    - ${src}/kerass/layers/sequences/cells/spatio_temporal/AutoregressiveCell.py
+    - ${src}/kerass/models/ED.py
+    - ${src}/kerass/datasets/datasets.py
+    - ${src}/kerass/layers/sequences/cells/spatio_temporal/NormFFAdapter.py
+    - ${src}/stages/test/static.py
+    - ${src}/kerass/layers/sequences/constants.py
+    - ${src}/kerass/metrics
+    - ${src}/kerass/utils/is_node_a_tensor_shape.py
+    - ${src}/kerass/layers/gnn/GraphConv.py
+    - ${src}/kerass/layers/sequences/rnn.py
+    - ${src}/kerass/layers/scaling/MinMaxScaler.py
+    - ${src}/plotlyy/tsne_embeddings.py
+    params:
+    - dataset
+    - model
+    - test
+    - paths.model_path
+    - paths.X_path
+    - paths.Y_path
+    - paths.test_indexes_path
+    - paths.adj_path
+    - paths.test_metrics_path
+    outs:
+    - ${exp_dir_path}/test
+  prepare:
+    cmd: python -m experiments.stages.prepare
+    deps:
+    - ${src}/stages/prepare.py
+    - ${paths.dataset_path}
+    params:
+    - prepare
+    - paths.dataset_path
+    - paths.X_path
+    - paths.Y_path
+    outs:
+    - ${exp_dir_path}/prepare
+  split:
+    cmd: python -m experiments.stages.split.seasonal_folds
+    deps:
+    - ${src}/stages/split/seasonal_folds.py
+    params:
+    - split
+    - paths.train_indexes_path
+    - paths.test_indexes_path
+    - paths.val_indexes_path
+    outs:
+    - ${exp_dir_path}/split
+vars:
+- src: src/experiments
+- exp_dir_path: dvc-stages-outputs
+metrics:
+- ${exp_dir_path}/test/metrics.yaml

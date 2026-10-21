@@ -1,0 +1,314 @@
+defaults:
+  - _self_
+  - cell@encoder_cell: Standard
+  - cell_adapter@encoder_cell_adapter: None
+  - cell_adapter@decoder_cell_adapter: None
+  - postprocessing: None
+  - preprocessing: None
+
+decoder_cell:
+  file_deps: []
+  cfg: null
+  name: ""
+  id: ${model.encoder_cell.name}
+
+all_attention_configs:
+  pe_layer_types:
+    Sinusoidal:
+      name: SIN
+      file_deps:
+        - \${src}/kerass/layers/spatio_temporal/attentions/positional_encodings/SinusoidalPE.py
+      cfg:
+        _target_: experiments.kerass.layers.spatio_temporal.attentions.positional_encodings.SinusoidalPE
+    RoPE:
+      name: RoPE
+      file_deps:
+        - \${src}/kerass/layers/spatio_temporal/attentions/positional_encodings/RoPE.py
+      cfg:
+        _target_: experiments.kerass.layers.spatio_temporal.attentions.positional_encodings.RoPE
+    None:
+      name: "NoPE"
+      file_deps: []
+      cfg: null
+
+  fold_layers:
+    HNFold:
+      file_deps:
+        - \${src}/kerass/layers/spatio_temporal/attentions/folds/HNFold.py
+      cfg:
+        _target_: experiments.kerass.layers.spatio_temporal.attentions.folds.HNFold
+      name: HN
+    BNFold:
+      file_deps:
+        - \${src}/kerass/layers/spatio_temporal/attentions/folds/BNFold.py
+      cfg:
+        _target_: experiments.kerass.layers.spatio_temporal.attentions.folds.BNFold
+      name: BN
+
+  attention_layers:
+    SpatialAttention:
+      fold_layer: BNFold
+      name: ${...fold_layers.${.fold_layer}.name}SATT
+      file_deps: ${concat_lists:"\${src}/kerass/layers/spatio_temporal/attentions/SpatialAttention.py",${model.all_attention_configs.fold_layers.${.fold_layer}.file_deps}}
+      cfg:
+        _target_: experiments.kerass.layers.spatio_temporal.attentions.SpatialAttention
+        fold_layer: ${model.all_attention_configs.fold_layers.${..fold_layer}.cfg}
+        with_skip_connection: false
+        with_normalization: false
+
+  TwoStates:
+    only-1st:
+      name: &only-1st-name
+        only-1st-${model.all_attention_configs.attention_layers.${.attention_layers}.name}-${model.all_attention_configs.pe_layer_types.${.pe_layers}.name}
+      attention_layers: SpatialAttention
+      pe_layers: Sinusoidal
+      file_deps: ${concat_lists:${model.all_attention_configs.attention_layers.${.attention_layers}.file_deps},${model.all_attention_configs.pe_layer_types.${.pe_layers}.file_deps}}
+      cfg:
+        attention_layers:
+          - ${model.all_attention_configs.attention_layers.${...attention_layers}.cfg}
+        query_projections:
+          - &query_projection
+            _target_: experiments.kerass.layers.AxisFlexibleDense
+            units: ${dataset.n_features}
+            axes: ${model.attention_config.query_indipendent_axes}
+        keys_projections:
+          - &keys_projection
+            _target_: experiments.kerass.layers.AxisFlexibleDense
+            units: ${dataset.n_features}
+            axes: ${model.attention_config.keys_indipendent_axes}
+        values_projections:
+          - &values_projection
+            _target_: experiments.kerass.layers.AxisFlexibleDense
+            units: ${dataset.n_features}
+            axes: ${model.attention_config.values_indipendent_axes}
+        states_mask: [True, False]
+        pe_layers:
+          - ${model.all_attention_configs.pe_layer_types.${...pe_layers}.cfg}
+        return_attention_scores: true
+    only-2nd:
+      name: &only-2nd-name
+        only-2nd-${model.all_attention_configs.attention_layers.${.attention_layers}.name}-${model.all_attention_configs.pe_layer_types.${.pe_layers}.name}
+      attention_layers: SpatialAttention
+      pe_layers: Sinusoidal
+      file_deps: ${concat_lists:${model.all_attention_configs.attention_layers.${.attention_layers}.file_deps},${model.all_attention_configs.pe_layer_types.${.pe_layers}.file_deps}}
+      cfg:
+        attention_layers:
+          - ${model.all_attention_configs.attention_layers.${...attention_layers}.cfg}
+        query_projections:
+          - *query_projection
+        keys_projections:
+          - *keys_projection
+        values_projections:
+          - *values_projection
+        states_mask: [False, True]
+        pe_layers:
+          - ${model.all_attention_configs.pe_layer_types.${...pe_layers}.cfg}
+        return_attention_scores: true
+    all:
+      name: all-${model.all_attention_configs.attention_layers.${.attention_layers.0}.name}-${model.all_attention_configs.pe_layer_types.${.pe_layers.0}.name}-${model.all_attention_configs.attention_layers.${.attention_layers.1}.name}-${model.all_attention_configs.pe_layer_types.${.pe_layers.1}.name}
+      attention_layers: 
+        - SpatialAttention
+        - SpatialAttention
+      pe_layers: 
+        - Sinusoidal
+        - Sinusoidal
+      file_deps: ${concat_lists:${model.all_attention_configs.attention_layers.${.attention_layers.0}.file_deps},${model.all_attention_configs.pe_layer_types.${.pe_layers.0}.file_deps},${model.all_attention_configs.attention_layers.${.attention_layers.1}.file_deps},${model.all_attention_configs.pe_layer_types.${.pe_layers.1}.file_deps}}
+      cfg:
+        attention_layers:
+          - ${model.all_attention_configs.attention_layers.${...attention_layers.0}.cfg}
+          - ${model.all_attention_configs.attention_layers.${...attention_layers.1}.cfg}
+        query_projections:
+          - *query_projection
+          - *query_projection
+        keys_projections:
+          - *keys_projection
+          - *keys_projection
+        values_projections:
+          - *values_projection
+          - *values_projection
+        states_mask: [True, True]
+        pe_layers:
+          - ${model.all_attention_configs.pe_layer_types.${...pe_layers.0}.cfg}
+          - ${model.all_attention_configs.pe_layer_types.${...pe_layers.1}.cfg}
+        return_attention_scores: true
+  ThreeStates:
+    only-1st:
+      name: *only-1st-name
+      attention_layers: SpatialAttention
+      pe_layers: Sinusoidal
+      file_deps: ${concat_lists:${model.all_attention_configs.attention_layers.${.attention_layers}.file_deps},${model.all_attention_configs.pe_layer_types.${.pe_layers}.file_deps}}
+      cfg:
+        attention_layers:
+          - ${model.all_attention_configs.attention_layers.${...attention_layers}.cfg}
+        query_projections:
+          - *query_projection
+        keys_projections:
+          - *keys_projection
+        values_projections:
+          - *values_projection
+        states_mask: [True, False, False]
+        pe_layers:
+          - ${model.all_attention_configs.pe_layer_types.${...pe_layers}.cfg}
+        return_attention_scores: true
+    only-2nd:
+      name: *only-2nd-name
+      attention_layers: SpatialAttention
+      pe_layers: Sinusoidal
+      file_deps: ${concat_lists:${model.all_attention_configs.attention_layers.${.attention_layers}.file_deps},${model.all_attention_configs.pe_layer_types.${.pe_layers}.file_deps}}
+      cfg:
+        attention_layers:
+          - ${model.all_attention_configs.attention_layers.${...attention_layers}.cfg}
+        query_projections:
+          - *query_projection
+        keys_projections:
+          - *keys_projection
+        values_projections:
+          - *values_projection
+        states_mask: [False, True, False]
+        pe_layers:
+          - ${model.all_attention_configs.pe_layer_types.${...pe_layers}.cfg}
+        return_attention_scores: true
+    only-3rd:
+      name: only-3rd-${model.all_attention_configs.attention_layers.${.attention_layers}.name}-${model.all_attention_configs.pe_layer_types.${.pe_layers}.name}
+      attention_layers: SpatialAttention
+      pe_layers: Sinusoidal
+      file_deps: ${concat_lists:${model.all_attention_configs.attention_layers.${.attention_layers}.file_deps},${model.all_attention_configs.pe_layer_types.${.pe_layers}.file_deps}}
+      cfg:
+        attention_layers:
+          - ${model.all_attention_configs.attention_layers.${...attention_layers}.cfg}
+        query_projections:
+          - *query_projection
+        keys_projections:
+          - *keys_projection
+        values_projections:
+          - *values_projection
+        states_mask: [False, False, True]
+        pe_layers:
+          - ${model.all_attention_configs.pe_layer_types.${...pe_layers}.cfg}
+        return_attention_scores: true
+    all:
+      name: all-${model.all_attention_configs.attention_layers.${.attention_layers.0}.name}-${model.all_attention_configs.pe_layer_types.${.pe_layers.0}.name}-${model.all_attention_configs.attention_layers.${.attention_layers.1}.name}-${model.all_attention_configs.pe_layer_types.${.pe_layers.1}.name}-${model.all_attention_configs.attention_layers.${.attention_layers.2}.name}-${model.all_attention_configs.pe_layer_types.${.pe_layers.2}.name}
+      attention_layers: 
+        - SpatialAttention
+        - SpatialAttention
+        - SpatialAttention
+      pe_layers: 
+        - Sinusoidal
+        - Sinusoidal
+        - Sinusoidal
+      file_deps: ${concat_lists:${model.all_attention_configs.attention_layers.${.attention_layers.0}.file_deps},${model.all_attention_configs.pe_layer_types.${.pe_layers.0}.file_deps},${model.all_attention_configs.attention_layers.${.attention_layers.1}.file_deps},${model.all_attention_configs.pe_layer_types.${.pe_layers.1}.file_deps},${model.all_attention_configs.attention_layers.${.attention_layers.2}.file_deps},${model.all_attention_configs.pe_layer_types.${.pe_layers.2}.file_deps}}
+      cfg:
+        attention_layers:
+          - ${model.all_attention_configs.attention_layers.${...attention_layers.0}.cfg}
+          - ${model.all_attention_configs.attention_layers.${...attention_layers.1}.cfg}
+          - ${model.all_attention_configs.attention_layers.${...attention_layers.2}.cfg}
+        query_projections:
+          - *query_projection
+          - *query_projection
+          - *query_projection
+        keys_projections:
+          - *keys_projection
+          - *keys_projection
+          - *keys_projection
+        values_projections:
+          - *values_projection
+          - *values_projection
+          - *values_projection
+        states_mask: [True, True, True]
+        pe_layers:
+          - ${model.all_attention_configs.pe_layer_types.${...pe_layers.0}.cfg}
+          - ${model.all_attention_configs.pe_layer_types.${...pe_layers.1}.cfg}
+          - ${model.all_attention_configs.pe_layer_types.${...pe_layers.2}.cfg}
+        return_attention_scores: true
+
+  LSTM: ${model.all_attention_configs.TwoStates}
+  GRU: ${model.all_attention_configs.TwoStates}
+  GCN-LSTM: ${model.all_attention_configs.TwoStates}
+  MGCN-LSTM: ${model.all_attention_configs.ThreeStates}
+  GCNSKIPCONN-LSTM: ${model.all_attention_configs.TwoStates}
+  MGCNSKIPCONN-LSTM: ${model.all_attention_configs.ThreeStates}
+  GAT-LSTM: ${model.all_attention_configs.TwoStates}
+  MGAT-LSTM: ${model.all_attention_configs.ThreeStates}
+
+attention_config:
+  proj_state_mask: only-1st
+  query_indipendent_axes: []
+  keys_indipendent_axes: []
+  values_indipendent_axes: []
+
+all_file_deps:
+
+  seq2seq:
+    - \${src}/kerass/utils/is_node_a_tensor_shape.py
+    - \${src}/kerass/layers/sequences/cells/spatio_temporal/AutoregressiveCell.py
+    - \${src}/kerass/layers/sequences/cells/constants.py
+    - \${src}/kerass/layers/sequences/rnn.py
+    - \${src}/kerass/layers/sequences/utils.py
+    - \${src}/kerass/layers/sequences/constants.py
+  
+  general:
+    - \${src}/kerass/datasets/datasets.py
+    - \${src}/kerass/metrics
+  
+  common: ${concat_lists:${model.encoder_cell.file_deps},${model.decoder_cell.file_deps},${model.encoder_cell_adapter.file_deps},${model.decoder_cell_adapter.file_deps},${dataset.selected_scalers.file_deps},${model.all_file_deps.seq2seq},${model.all_file_deps.general},${model.postprocessing.file_deps},${model.preprocessing.file_deps}}
+  
+  common_plots:
+    - \${src}/plotlyy/morans.py
+    - \${src}/plotlyy/tsne_embeddings.py
+
+  STED: 
+    arch: ${concat_lists:${model.all_file_deps.common},"\${src}/kerass/models/ED.py","\${src}/kerass/layers/sequences/arnn.py"}
+    plots: ${model.all_file_deps.common_plots}
+  
+  STAED:
+    arch: ${concat_lists:${model.all_file_deps.STED.arch},${model.all_attention_configs.${model.encoder_cell.name}.${model.attention_config.proj_state_mask}.file_deps},${model.all_attention_configs.${model.decoder_cell.id}.${model.attention_config.proj_state_mask}.file_deps},"\${src}/kerass/models/AED.py"}
+    plots: ${concat_lists:${model.all_file_deps.STED.plots},"\${src}/plotlyy/attention.py"}
+
+all_EDs:
+  STED:
+    name: ${model.preprocessing.name}${model.encoder_cell_adapter.name}${model.encoder_cell.name}${model.decoder_cell_adapter.name}${model.decoder_cell.name}${model.postprocessing.name}
+    cfg:
+      _target_: experiments.kerass.models.ED
+      p: ${dataset.params.prepare.p}
+      encoder_cell: ${model.encoder_cell.cfg}
+      decoder_cell: ${model.decoder_cell.cfg}
+      use_encoder_last_outputs_as_decoder_initial_outputs: false
+      return_encoder_cell_outputs: true
+      name: encoder_decoder
+  STAED:
+    proj_prefix: ""
+    name: ${model.preprocessing.name}${.proj_prefix}-${model.all_attention_configs.${model.decoder_cell.id}.${model.attention_config.proj_state_mask}.name}-${model.encoder_cell_adapter.name}${model.encoder_cell.name}${model.decoder_cell_adapter.name}${model.decoder_cell.name}${model.postprocessing.name}
+    cfg:
+      _target_: experiments.kerass.models.AED
+      p: ${dataset.params.prepare.p}
+      encoder_cell: ${model.encoder_cell.cfg}
+      decoder_cell: ${model.decoder_cell.cfg}
+      attention_config: ${model.all_attention_configs.${model.decoder_cell.id}.${model.attention_config.proj_state_mask}.cfg}
+      use_encoder_last_outputs_as_decoder_initial_outputs: false
+      return_encoder_cell_outputs: true
+      name: encoder_decoder
+
+selected_ED: STED
+framework: keras
+
+file_deps: ${model.all_file_deps.${model.selected_ED}}
+name: ${model.all_EDs.${model.selected_ED}.name}
+
+params:
+  meta:
+    model: ${model.name}
+  model:
+    # # use_adjacency: true
+    # use_exogenous_features: true 
+    # shift_targets_in_encoder_inputs: true
+    # use_time_features: true
+
+    init:
+      ${model.all_EDs.${model.selected_ED}.cfg}
+    encoder_adapter: ${model.encoder_cell_adapter.cfg}
+    decoder_adapter: ${model.decoder_cell_adapter.cfg}
+    preprocessing_layer: ${model.preprocessing.cfg}
+    postprocessing_layer: ${model.postprocessing.cfg}
+    apply_enc_adapter_to_decoder_cell: false
+    scalers: ${dataset.selected_scalers.cfg}
+    filename: ${model.name}.weights.h5

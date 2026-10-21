@@ -1,0 +1,9 @@
+# @package _global_
+
+defaults:
+  - _self_
+  - /overrides/attentions/projections: Shared
+  - /overrides/attentions/pe_layers: None
+
+model:
+  selected_ED: STAED

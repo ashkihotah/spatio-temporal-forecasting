@@ -1,0 +1,12 @@
+
+file_deps:
+  - \${src}/kerass/layers/sequences/cells/spatio_temporal/LSTMCell.py
+
+cfg:
+  _target_: experiments.kerass.layers.sequences.cells.spatio_temporal.LSTMCell
+  states_dim: ${dataset.n_features}
+  n_nodes: ${dataset.n_nodes}
+  output_dim: 1
+  return_hidden_state: true
+
+name: LSTM

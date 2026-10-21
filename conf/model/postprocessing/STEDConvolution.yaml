@@ -1,0 +1,9 @@
+file_deps:
+  - \${src}/kerass/layers/postprocessing/STEDConvolution.py
+
+cfg:
+  _target_: experiments.kerass.layers.postprocessing.STEDConvolution
+  p: ${dataset.params.prepare.p}
+  output_dim: 1
+
+name: -CH

@@ -1,0 +1,25 @@
+# @package _global_
+
+model:
+  all_attention_configs:
+    TwoStates:
+      only-1st:
+        pe_layers: None
+      only-2nd:
+        pe_layers: None
+      all:
+        pe_layers:
+          - None
+          - None
+    ThreeStates:
+      only-1st:
+        pe_layers: None
+      only-2nd:
+        pe_layers: None
+      only-3rd:
+        pe_layers: None
+      all:
+        pe_layers:
+          - None
+          - None
+          - None
