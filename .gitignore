@@ -3,6 +3,7 @@
 .aim
 .meta
 dvc-stages-outputs/.temp
+**/.DS_Store
 
 # =========== END Custom project files ===========
 

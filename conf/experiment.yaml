@@ -2,7 +2,7 @@ defaults:
   - _self_
   - /vars
   - dvc-pipeline: validation
-  - dataset: beijing-multisite-airquality
+  - dataset: pv-italy
   - model: ED
   - consumer_args: aim
   - /overrides/cell-input-data-distribution: different

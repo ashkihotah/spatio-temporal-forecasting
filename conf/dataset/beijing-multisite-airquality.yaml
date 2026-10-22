@@ -89,7 +89,7 @@ test_indexes:
   - 181 # altieri sample index: 145
 
 n_nodes: 12
-n_features: ${get_n_features:14,${params.dataset.use_time_features}}
+n_features: ${get_n_features:13,${params.dataset.use_time_features}}
 name: beijing-multisite-airquality
 
 params:

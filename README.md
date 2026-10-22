@@ -17,7 +17,7 @@
 
 #### Same 
 ```bash
-"overrides/cell-input-data-distribution=same" "framework.keras.losses.mae.cfg.encoder_outputs=null" model.params.model.apply_enc_adapter_to_decoder_cell=true
+"overrides/cell-input-data-distribution=same" model.params.model.apply_enc_adapter_to_decoder_cell=true "framework.keras.losses.mae.cfg.encoder_outputs=null"
 ```
 
 ### Other
