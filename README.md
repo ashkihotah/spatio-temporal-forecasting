@@ -2,6 +2,20 @@
 
 ## Overrides
 
+### MoE
+
+```bash
+"model/cell_adapter@model.encoder_cell_adapter=HMoE,None" model.encoder_cell_adapter.cfg.moe_router.n_experts=4,8,16 model.encoder_cell_adapter.cfg.moe_router.top_k=1,2,3,4
+```
+
+```bash
+"model/cell@model.encoder_cell=CMoE" model.encoder_cell.routing_cfg.top_k=1,2,3,4 "+overrides/CMoE=4Experts,8Experts,16Experts" model.encoder_cell.default_cell=MGAP-LSTM,GAP-LSTM model.encoder_cell.all_experts.GAP-LSTM.default_gnn=GCN,GCNSKIPCONN,GAT model.encoder_cell.all_experts.MGAP-LSTM.default_gnn=GCN,GCNSKIPCONN,GAT
+```
+
+```bash
+model.encoder_cell.default_cell=GAP-LSTM "model.encoder_cell.cell.default_gnn=MoE-GNN" "+overrides/GMoE=4GNN,8GNN" "model.gnns.MoE-GNN.cfg.top_k=1,2,3,4" model.gnns.MoE-GNN.default_gnn=GCNSKIPCONN,GCN,GAT
+```
+
 ### Attention
 
 ```bash
@@ -25,7 +39,7 @@
 "model/preprocessing=None,NormFF" params.dataset.use_time_features=False,True
 ```
 
-## Vanilla Models
+### Vanilla Models
 
 ```bash
 python -m experiments.run "model/cell/cell@model.encoder_cell.cell=GRU"
@@ -39,9 +53,7 @@ python -m experiments.run "model/cell/cell@model.encoder_cell.cell=GAP-LSTM,MGAP
 python -m experiments.run "model/cell/cell@model.encoder_cell.cell=LSTM" "model/cell_adapter@model.encoder_cell_adapter=SVDPP,GNNPP,None"
 ```
 
-# All configs
-
-all vanilla models:
+# All Models
 
 - MGAP-LSTM-(GCN)
 - MGAP-LSTM-(GCNSKIPCONN)
@@ -59,162 +71,52 @@ all vanilla models:
 
 - LSTM
 
-
 - GNNPP-LSTM-(GCN)
 - SVDPP-LSTM
 - GRU
 
-la tabella sarà
-
-<table>
-    <thead>
-        <!-- Macro Columns (Parent Headers) -->
-        <tr>
-            <th colspan="1">Models</th>
-            <th colspan="8">Encoder-Decoder Input Data Distribution</th>
-        </tr>
-        <tr>
-            <th colspan="1"></th>
-            <th colspan="4">Different</th>
-            <th colspan="4">Same</th>
-        </tr>
-        <!-- Micro Columns (Child Headers) -->
-        <tr>
-            <th></th>
-            <th>Min</th>
-            <th>Avg</th>
-            <th>Median</th>
-            <th>Max</th>
-            <th>Min</th>
-            <th>Avg</th>
-            <th>Median</th>
-            <th>Max</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr>
-        <td>LSTM</td>
-        <td>0.7</td>
-        <td>0.6</td>
-        <td>0.7</td>
-        <td>0.6</td>
-        <td>0.7</td>
-        <td>0.6</td>
-        <td>0.7</td>
-        <td>0.6</td>
-        </tr>
-        <tr>
-        <td>SVDPP-LSTM</td>
-        <td>0.8</td>
-        <td>0.5</td>
-        <td>0.7</td>
-        <td>0.6</td>
-        <td>0.7</td>
-        <td>0.6</td>
-        <td>0.7</td>
-        <td>0.6</td>
-        </tr>
-    </tbody>
-</table>
-
-<table>
-    <thead>
-        <!-- Macro Columns (Parent Headers) -->
-        <tr>
-            <th colspan="1">Models</th>
-            <th colspan="32">Attentions</th>
-        </tr>
-        <tr>
-            <th colspan="1"></th>
-            <th colspan="4">None</th>
-            <th colspan="4">HN-NoPE</th>
-            <th colspan="4">shared-NoPE</th>
-            <th colspan="4">shared-SinPE</th>
-        </tr>
-        <!-- Micro Columns (Child Headers) -->
-        <tr>
-            <th></th>
-            <th>Min</th>
-            <th>Avg</th>
-            <th>Median</th>
-            <th>Max</th>
-            <th>Min</th>
-            <th>Avg</th>
-            <th>Median</th>
-            <th>Max</th>
-            <th>Min</th>
-            <th>Avg</th>
-            <th>Median</th>
-            <th>Max</th>
-            <th>Min</th>
-            <th>Avg</th>
-            <th>Median</th>
-            <th>Max</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr>
-        <td>LSTM</td>
-        <td>0.7</td>
-        <td>0.6</td>
-        <td>0.7</td>
-        <td>0.6</td>
-        <td>0.7</td>
-        <td>0.6</td>
-        <td>0.7</td>
-        <td>0.6</td>
-        <td>0.7</td>
-        <td>0.6</td>
-        <td>0.7</td>
-        <td>0.6</td>
-        <td>0.7</td>
-        <td>0.6</td>
-        <td>0.7</td>
-        <td>0.6</td>
-        </tr>
-        <tr>
-        <td>SVDPP-LSTM</td>
-        <td>0.8</td>
-        <td>0.5</td>
-        <td>0.7</td>
-        <td>0.6</td>
-        <td>0.7</td>
-        <td>0.6</td>
-        <td>0.7</td>
-        <td>0.6</td>
-        <td>0.7</td>
-        <td>0.6</td>
-        <td>0.7</td>
-        <td>0.6</td>
-        <td>0.7</td>
-        <td>0.6</td>
-        <td>0.7</td>
-        <td>0.6</td>
-        </tr>
-    </tbody>
-</table>
-
-Al posto di far vedere le tabelle è meglio far vedere i boxplot. I boxplot li puoi visualizzare sia in 3d sia in 2d ma rispondono a domande diverse. Per poterli visualizzare in 2d devi calcolare min, avg, median e max anche lungo i modelli vanilla ottendo un boxplot (configs x metric). In 3d avresti (models x configs x metric). Quelli in 2d rispondono alla domanda: Qual'è la config migliore indipendentemente dalla variante LSTM? Quelli in 3d rispondono sia alla domanda di prima sia alla domanda: Qual'è la combinazione config-modello migliore per risolvere questo task in questo dataset?
-
-Min avg median e max sono calcolati fissando i modelli e aggregando su tutte le combinazioni (n. combinazioni totali sono 192) di:
+# Altieri Experiments
 
 - NormFF, NoNorm (2)
 - NoTimeFeatures, TimeFeatures (2)
+- Attention
+    - No
+    - Yes (2)
+        - HN-attention-NoPE
+        - shared-attention-NoPE
+- Data Distribution
+    - EmbedingAR, NoExogFeat e NoShift (3)
+        - Conv
+        - STReshapedHead
+        - STSharedHead
+    - TargetAR, UseExogFeat, RShift e EncoderLoss
 
-- HMoEAdapter, None (2)
-- MoECell, None (2)
+# My Experiments
 
-- NoAttention, HN-attention-NoPE, shared-attention-NoPE, shared-attention-SinPE (4)
-- (EmbedingAR, NoExogFeat e NoShift), (TargetAR, UseExogFeat e RShift) (2)
-
-- NoEncoderLoss, EncoderLoss (2)
-- Conv, STReshapedHead, STSharedHead (3) (applicabili solo se scegli (EmbedingAR, NoExogFeat e NoShift))
 - GMoE, None (2) (applicabile solo a GAP-LSTM)
+- HMoEAdapter (HMoE), None (2)
+- MoECell (CMoE), None (2)
 
-n. Run: 
-- 10 (modelli base) x 192 (hp sets) = 1920
+# TODO
 
-- 1920 x 5 (iperparametri in hpo) = 9600
-- 9600 x 30 s (run time) = 288.000 s = 4800 min = 80 h = 3 gg
+1. try on wind-nrel
+2. try base keras hpo i.e. 
+    1. batch_size: 32, 64, 128, 256, 512, 1024
+    2. learning rate: 0.1, 0.01, 0.001, 0.0001
+    3. epochs: 10, 25, 50
+3. beijing gemini scalers
+4. try attention pe layers
+5. Try all other models: LSTM, GNN-LSTM, SVD-LSTM, GRU etc.
 
-- 3 gg x 2 dataset = 6 gg
+
+6. Quando vengono combinate diverse tecniche di MoE, l'aggregazione delle MoE loss è da rincontrollare poichè potrebbe non essere corretta. I moduli python da ricontrollare sono esattamente:
+    1. `HMoeAdapter.py`: in particolare l'aggregazione `step_loss = step_loss + head_loss`
+    2. `MoeCell.py`: in particolare l'aggregazione `step_loss = step_loss + expert_loss`
+    3. `GAPLSTMWithMemoryCell.py`: in particolare l'aggregazione `step_loss = step_loss + mem_gnn_loss`. Qui l'aggregazione in realtà dovrebbe essere 
+    ```python
+    mgap_lstm_step_loss = loss_fx + loss_fh + loss_ix + loss_ih + loss_cx + loss_ch + loss_ox + loss_oh
+    mgap_lstm_step_loss += loss_ih + loss_im + loss_gh + loss_gm + loss_oh + loss_om
+    mgap_lstm_step_loss /= 14.0
+    ```
+
+La fix prioritaria è la (3.) relativa a `GAPLSTMWithMemoryCell.py` dato che senza quella non si possono runnare le GMoE. Quindi non appena finisce quest'ultima run per la CMoE, committiamo tutto così preserviamo tutti gli esperimenti fatti fin'ora. Fixiamo tutto e rilanciamo solo gli esperimenti sulla MoE.

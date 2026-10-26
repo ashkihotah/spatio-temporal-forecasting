@@ -1,4 +1,4 @@
-default_gnn: GCSKIPCONN
+default_gnn: GCNSKIPCONN
 
 selected_fx_gnn: ${.default_gnn}
 selected_fh_gnn: ${.default_gnn}

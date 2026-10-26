@@ -63,6 +63,7 @@ def get_cmoe_cfg(
     experts: list[str],
     all_experts: list[DictConfig],
     routing_cfg: DictConfig,
+    _parent_ = None,
 ) -> DictConfig:
 
     experts_cfgs = []
@@ -74,23 +75,30 @@ def get_cmoe_cfg(
             raise ValueError(
                 f"Expert '{expert_name}' not found in all_experts"
             )
+        
+        OmegaConf.resolve(expert_cfg.cfg)
         experts_cfgs.append(expert_cfg.cfg)
         names.add(expert_cfg.name)
-        file_deps.update(set(expert_cfg.file_deps))
 
-    cmoe_cfg = DictConfig({
-        "file_deps": list(file_deps),
-        "cfg": {
-            "_target_": "experiments.kerass.layers.sequences.cells.spatio_temporal.CMoE",
-            "experts": experts_cfgs,
-            **routing_cfg
+        file_dep = {dep.replace("${", "\\${") for dep in expert_cfg.file_deps}
+        file_deps.update(file_dep)
+
+    cmoe_cfg = DictConfig(
+        content={
+            "file_deps": list(file_deps),
+            "cfg": {
+                "_target_": "experiments.kerass.layers.sequences.cells.spatio_temporal.MoeCell",
+                "experts": experts_cfgs,
+                **routing_cfg
+            },
+            "name": "CMoE-|" + "|-|".join(sorted(list(names))) + "|"
         },
-        "name": "CMoE-|" + "|-|".join(sorted(list(names))) + "|"
-    })
+        parent=_parent_
+    )
 
-    cmoe_cfg_str = OmegaConf.to_yaml(cmoe_cfg)
-    cmoe_cfg_str = cmoe_cfg_str.replace("${", r"\${")
-    cmoe_cfg = OmegaConf.create(cmoe_cfg_str)
+    # cmoe_cfg_str = OmegaConf.to_yaml(cmoe_cfg)
+    # cmoe_cfg_str = cmoe_cfg_str.replace("${", r"\${")
+    # cmoe_cfg = OmegaConf.create(cmoe_cfg_str)
 
     return cmoe_cfg
 

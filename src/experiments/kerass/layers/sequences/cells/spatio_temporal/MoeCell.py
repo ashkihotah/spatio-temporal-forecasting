@@ -14,6 +14,7 @@ class MoeCell(keras.layers.Layer, AutoregressiveCell):
         aux_loss_weight: float = 0.01,
         z_loss_weight: float = 0.001,
         router_feature_indices: list[int] | None = None,
+        return_routing_weights: bool = False,
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -22,7 +23,7 @@ class MoeCell(keras.layers.Layer, AutoregressiveCell):
 
         self.experts = experts
         self.router_feature_indices = router_feature_indices
-        
+        self.return_routing_weights = return_routing_weights
         self.num_experts = len(experts)
         self.moe_router = MoeRouter(
             n_experts=self.num_experts,
@@ -65,9 +66,12 @@ class MoeCell(keras.layers.Layer, AutoregressiveCell):
 
     @property
     def log_size(self):
-        log_size = {
-            "routing_weights": (self.n_nodes, self.num_experts)
-        }
+        if self.return_routing_weights:
+            log_size = {
+                "routing_weights": (self.n_nodes, self.num_experts)
+            }
+        else:
+            log_size = {}
         for idx, expert in enumerate(self.experts):
             for log_name, log_shape in expert.log_size.items():
                 log_size[f"expert_{idx}_{log_name}"] = log_shape
@@ -160,6 +164,7 @@ class MoeCell(keras.layers.Layer, AutoregressiveCell):
                 else:
                     combined_log[log_k] = weighted_log
 
-        combined_log["routing_weights"] = routing_weights
+        if self.return_routing_weights:
+            combined_log["routing_weights"] = routing_weights
 
         return accum_out, accum_state, combined_log, step_loss

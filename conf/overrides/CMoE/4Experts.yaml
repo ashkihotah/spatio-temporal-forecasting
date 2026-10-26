@@ -1,0 +1,9 @@
+# @package _global_
+
+model:
+  encoder_cell:
+    experts:
+      - ${..default_cell}
+      - ${..default_cell}
+      - ${..default_cell}
+      - ${..default_cell}

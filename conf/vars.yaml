@@ -172,3 +172,16 @@ model:
         use_bias: true
         num_experts: 8
         top_k: 3
+    MoE-GNN:
+      experts:
+        - GCN
+        - GAT
+        - GCNSKIPCONN
+      file_deps: ${concat_lists:${model.gnns.${.experts[0]}.file_deps},${model.gnns.${.experts[1]}.file_deps},${model.gnns.${.experts[2]}.file_deps},"\${src}/kerass/layers/gnn/MoeGNN.py","\${src}/kerass/layers/routers/MoeRouter.py"}
+      cfg:
+        gnn_type: moe_gnn
+        experts_configs:
+          - ${model.gnns.${...experts[0]}.cfg}
+          - ${model.gnns.${...experts[1]}.cfg}
+          - ${model.gnns.${...experts[2]}.cfg}
+        top_k: 2

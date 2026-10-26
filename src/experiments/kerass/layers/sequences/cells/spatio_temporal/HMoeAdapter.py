@@ -12,6 +12,7 @@ class HMoeAdapter(keras.layers.Layer):
         super().__init__(**kwargs)
         self.cell = cell
         self.moe_router = moe_router
+        self.n_head_experts = moe_router.num_experts
         self.return_routing_weights = return_routing_weights
 
         if self.n_head_experts < 2:
@@ -29,7 +30,9 @@ class HMoeAdapter(keras.layers.Layer):
         # Assuming the first element is the hidden state
         hidden_state_shape = self.cell.state_size[0]
 
-        self.moe_router.build(hidden_state_shape)
+        if not self.moe_router.built:
+            self.moe_router.build(hidden_state_shape)
+        
         for i in range(self.n_head_experts):
             self.output_denses[i].build(hidden_state_shape)
 
