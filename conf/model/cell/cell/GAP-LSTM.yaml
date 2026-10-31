@@ -28,4 +28,4 @@ cfg:
   oh_gnn_config: ${model.gnns.${..selected_oh_gnn}.cfg}
   return_hidden_state: true
 
-name: ${.default_gnn}-LSTM
+name: ${model.gnns.${.default_gnn}.name}-LSTM

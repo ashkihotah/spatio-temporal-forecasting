@@ -7,3 +7,4 @@ from .GCNSKIPCONN import GCNSKIPCONN
 from .GraphConv import GraphConv
 from .MoeGraphConv import MoeGraphConv
 from .WeightedGraphConv import WeightedGraphConv
+from .MoeGNN import MoeGNN

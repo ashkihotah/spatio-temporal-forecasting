@@ -40,7 +40,7 @@ def localpooling_filter(A, symmetric=True):
     [Kipf & Welling (2017)](https://arxiv.org/abs/1609.02907).
     :param A: array or sparse matrix with rank 2 or 3;
     :param symmetric: boolean, whether to normalize the matrix as
-    \(\D^{-\frac{1}{2}}\A\D^{-\frac{1}{2}}\) or as \(\D^{-1}\A\);
+    $(D^{-\frac{1}{2}}AD^{-\frac{1}{2}})$ or as $(D^{-1}A)$;
     :return: array or sparse matrix with rank 2 or 3, same as A;
     """
     fltr = A.copy()

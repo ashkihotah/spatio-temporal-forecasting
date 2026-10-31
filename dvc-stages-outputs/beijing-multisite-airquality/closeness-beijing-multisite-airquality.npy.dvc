@@ -1,0 +1,5 @@
+outs:
+- md5: 0281d84108f1a48d1c1478343b0a3d23
+  size: 1280
+  hash: md5
+  path: closeness-beijing-multisite-airquality.npy

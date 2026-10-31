@@ -83,15 +83,34 @@ def get_cmoe_cfg(
         file_dep = {dep.replace("${", "\\${") for dep in expert_cfg.file_deps}
         file_deps.update(file_dep)
 
+    routing_cfg_copy = routing_cfg.copy()
+    OmegaConf.set_struct(routing_cfg_copy, False)
+
+    moe_router_cfg = routing_cfg_copy.pop("moe_router", None)
+    moe_router_cfg_file_deps = [dep.replace("${", "\\${") for dep in moe_router_cfg.file_deps]
+    file_deps.update(moe_router_cfg_file_deps)
+
+    pooling_layer_cfg = routing_cfg_copy.pop("pooling_layer", None)
+    pooling_layer_cfg_file_deps = [dep.replace("${", "\\${") for dep in pooling_layer_cfg.file_deps]
+    file_deps.update(pooling_layer_cfg_file_deps)
+
     cmoe_cfg = DictConfig(
         content={
-            "file_deps": list(file_deps),
+            "file_deps": list(file_deps) + [
+                "\\${src}/kerass/layers/sequences/cells/spatio_temporal/MoeCell.py",
+            ],
             "cfg": {
                 "_target_": "experiments.kerass.layers.sequences.cells.spatio_temporal.MoeCell",
                 "experts": experts_cfgs,
-                **routing_cfg
+                "moe_router": moe_router_cfg.cfg,
+                "pooling_layer": pooling_layer_cfg.cfg,
+                **routing_cfg_copy
             },
-            "name": "CMoE-|" + "|-|".join(sorted(list(names))) + "|"
+            "name": get_set_name(
+                prefix=f"{moe_router_cfg.name}-{pooling_layer_cfg.name}-CMoE-",
+                names=names,
+                postfix="",
+            )
         },
         parent=_parent_
     )
@@ -103,6 +122,12 @@ def get_cmoe_cfg(
     return cmoe_cfg
 
 OmegaConf.register_new_resolver("get_cmoe_cfg", get_cmoe_cfg)
+
+def get_set_name(prefix: str, names: set[str] | list[str], postfix: str) -> str:
+    names = list(set(names))
+    return f"{prefix}|{'|-|'.join(sorted(names))}|{postfix}"
+
+OmegaConf.register_new_resolver("get_set_name", get_set_name)
 
 def get_n_features(n_features: int, use_time_features: bool) -> int:
     if use_time_features:

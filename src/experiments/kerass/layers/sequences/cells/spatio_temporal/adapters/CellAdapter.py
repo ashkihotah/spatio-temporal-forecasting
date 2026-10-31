@@ -1,6 +1,6 @@
 import keras
 
-class PPCellAdapter(keras.layers.Layer):
+class CellAdapter(keras.layers.Layer):
 
     def __init__(
         self,

@@ -1,0 +1,18 @@
+# @package _global_
+
+model:
+  moe_routers:
+    default_args:
+      n_experts: 9
+
+  encoder_cell:
+    experts:
+      - MGCN-LSTM
+      - MGAT-LSTM
+      - MGCNSKIPCONN-LSTM
+      - MGCN-LSTM
+      - MGAT-LSTM
+      - MGCNSKIPCONN-LSTM
+      - MGCN-LSTM
+      - MGAT-LSTM
+      - MGCNSKIPCONN-LSTM

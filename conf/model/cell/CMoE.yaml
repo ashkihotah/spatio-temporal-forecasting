@@ -1,18 +1,37 @@
 defaults:
-  - _self_
-  - cell@all_experts.GAP-LSTM: GAP-LSTM
-  - cell@all_experts.MGAP-LSTM: MGAP-LSTM
+  - cell@all_experts.GCN-LSTM: GAP-LSTM
+  - cell@all_experts.MGCN-LSTM: MGAP-LSTM
+  - cell@all_experts.GAT-LSTM: GAP-LSTM
+  - cell@all_experts.MGAT-LSTM: MGAP-LSTM
+  - cell@all_experts.GCNSKIPCONN-LSTM: GAP-LSTM
+  - cell@all_experts.MGCNSKIPCONN-LSTM: MGAP-LSTM
   - cell@all_experts.GRU: GRU
   - cell@all_experts.LSTM: LSTM
+  - _self_
 
-default_cell: LSTM
+all_experts:
+  GCN-LSTM:
+    default_gnn: GCN
+  MGCN-LSTM:
+    default_gnn: GCN
+  GAT-LSTM:
+    default_gnn: GAT
+  MGAT-LSTM:
+    default_gnn: GAT
+  GCNSKIPCONN-LSTM:
+    default_gnn: GCNSKIPCONN
+  MGCNSKIPCONN-LSTM:
+    default_gnn: GCNSKIPCONN
+
+pooling: MMP
+moe_router: Shazeer
+default_cell: MGAP-LSTM
 # experts:
 #   - ${..default_cell}
 #   - ${..default_cell}
 routing_cfg:
-  top_k: 3
-  aux_loss_weight: 0.1
-  z_loss_weight: 0.1
+  moe_router: ${model.moe_routers.${..moe_router}}
+  pooling_layer: ${model.pooling_layers.${..pooling}}
   router_feature_indices: null
   return_routing_weights: true
 result: ${get_cmoe_cfg:${.experts},${.all_experts},${.routing_cfg}}

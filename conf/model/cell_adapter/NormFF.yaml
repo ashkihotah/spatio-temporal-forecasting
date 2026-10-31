@@ -1,8 +1,9 @@
 file_deps:
-  - \${src}/kerass/layers/sequences/cells/spatio_temporal/NormFFAdapter.py
+  - \${src}/kerass/layers/sequences/cells/spatio_temporal/adapters/NormFFAdapter.py
+  - \${src}/kerass/layers/sequences/cells/spatio_temporal/adapters/CellAdapter.py
 
 cfg:
-  _target_: experiments.kerass.layers.sequences.cells.spatio_temporal.NormFFAdapter
+  _target_: experiments.kerass.layers.sequences.cells.spatio_temporal.adapters.NormFFAdapter
   norm:
     _target_: keras.layers.LayerNormalization
     name: norm

@@ -140,8 +140,48 @@ framework:
           metrics: *metrics
 
 model:
+
+  pooling_layers:
+    MMP:
+      name: MMP
+      file_deps:
+        - \${src}/kerass/layers/spatio_temporal/pooling/MultiMomentPooling.py
+      cfg:
+        _target_: experiments.kerass.layers.spatio_temporal.pooling.MultiMomentPooling
+        include_skewness: true
+        include_extremes: true
+        include_dirichlet_energy: false
+
+  moe_routers:
+    default_args:
+      n_experts: 8
+      top_k: 3
+      aux_loss_weight: 0.01
+      z_loss_weight: 0.001
+    Shazeer:
+      name: Shazeer
+      file_deps:
+        - \${src}/kerass/layers/routers/ShazeerMoeRouter.py
+      cfg:
+        _target_: experiments.kerass.layers.routers.ShazeerMoeRouter
+        n_experts: ${model.moe_routers.default_args.n_experts}
+        top_k: ${model.moe_routers.default_args.top_k}
+        aux_loss_weight: ${model.moe_routers.default_args.aux_loss_weight}
+        z_loss_weight: ${model.moe_routers.default_args.z_loss_weight}
+    Switch:
+      name: Switch
+      file_deps:
+        - \${src}/kerass/layers/routers/SwitchMoeRouter.py
+      cfg:
+        _target_: experiments.kerass.layers.routers.SwitchMoeRouter
+        n_experts: ${model.moe_routers.default_args.n_experts}
+        top_k: ${model.moe_routers.default_args.top_k}
+        aux_loss_weight: ${model.moe_routers.default_args.aux_loss_weight}
+        z_loss_weight: ${model.moe_routers.default_args.z_loss_weight}
+
   gnns:
     GCN:
+      name: GCN
       file_deps:
         - \${src}/kerass/layers/gnn/GraphConv.py
       cfg:
@@ -149,6 +189,7 @@ model:
         activation: null
         use_bias: true
     GAT:
+      name: GAT
       file_deps:
         - \${src}/kerass/layers/gnn/GAT.py
       cfg:
@@ -156,32 +197,39 @@ model:
         skipconn: false
         normalize: false
     GCNSKIPCONN:
+      name: GCNSKIPCONN
       file_deps:
         - \${src}/kerass/layers/gnn/GCNSKIPCONN.py
       cfg:
         gnn_type: GCNSKIPCONN
         activation: null
         use_bias: true
-    MoE-GCN:
-      file_deps:
-        - \${src}/kerass/layers/gnn/MoeGraphConv.py
-        - \${src}/kerass/layers/routers/MoeRouter.py
-      cfg:
-        gnn_type: moe_spektral
-        activation: null
-        use_bias: true
-        num_experts: 8
-        top_k: 3
+    # MoE-GCN:
+    #   file_deps:
+    #     - \${src}/kerass/layers/gnn/MoeGraphConv.py
+    #     - \${src}/kerass/layers/routers/MoeRouter.py
+    #   cfg:
+    #     gnn_type: moe_spektral
+    #     activation: null
+    #     use_bias: true
+    #     num_experts: 8
+    #     top_k: 3
     MoE-GNN:
+      pooling_layer: MMP
+      moe_router: Shazeer
       experts:
         - GCN
         - GAT
         - GCNSKIPCONN
-      file_deps: ${concat_lists:${model.gnns.${.experts[0]}.file_deps},${model.gnns.${.experts[1]}.file_deps},${model.gnns.${.experts[2]}.file_deps},"\${src}/kerass/layers/gnn/MoeGNN.py","\${src}/kerass/layers/routers/MoeRouter.py"}
+      expert_names: ${concat_lists:${model.gnns.${.experts[0]}.name},${model.gnns.${.experts[1]}.name},${model.gnns.${.experts[2]}.name}}
+      prefix: "${model.moe_routers.${.moe_router}.name}-${model.pooling_layers.${.pooling_layer}.name}-GMoE-"
+      name: ${get_set_name:${.prefix},${.expert_names},""}
+      file_deps: ${concat_lists:${model.gnns.${.experts[0]}.file_deps},${model.gnns.${.experts[1]}.file_deps},${model.gnns.${.experts[2]}.file_deps},"\${src}/kerass/layers/gnn/MoeGNN.py",${model.moe_routers.${.moe_router}.file_deps},${model.pooling_layers.${.pooling_layer}.file_deps}}
       cfg:
         gnn_type: moe_gnn
         experts_configs:
           - ${model.gnns.${...experts[0]}.cfg}
           - ${model.gnns.${...experts[1]}.cfg}
           - ${model.gnns.${...experts[2]}.cfg}
-        top_k: 2
+        moe_router: ${model.moe_routers.${..moe_router}.cfg}
+        pooling_layer: ${model.pooling_layers.${..pooling_layer}.cfg}

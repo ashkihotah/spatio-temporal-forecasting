@@ -1,8 +1,8 @@
 import keras
 
-from .PPCellAdapter import PPCellAdapter
+from .CellAdapter import CellAdapter
 
-class GNNPPAdapter(PPCellAdapter):
+class GNNPPAdapter(CellAdapter):
 
     def __init__(
         self,

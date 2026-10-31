@@ -1,0 +1,92 @@
+selected_scalers:
+  file_deps: 
+    - \${src}/kerass/layers/scaling/IdentityScaler.py
+  cfg:
+    - _target_: experiments.kerass.layers.scaling.IdentityScaler.from_numpy
+    - _target_: experiments.kerass.layers.scaling.IdentityScaler.from_numpy
+    - _target_: experiments.kerass.layers.scaling.IdentityScaler.from_numpy
+    - _target_: experiments.kerass.layers.scaling.IdentityScaler.from_numpy
+    - _target_: experiments.kerass.layers.scaling.IdentityScaler.from_numpy
+    - _target_: experiments.kerass.layers.scaling.IdentityScaler.from_numpy
+    - _target_: experiments.kerass.layers.scaling.IdentityScaler.from_numpy
+    - _target_: experiments.kerass.layers.scaling.IdentityScaler.from_numpy
+    - _target_: experiments.kerass.layers.scaling.IdentityScaler.from_numpy
+    - _target_: experiments.kerass.layers.scaling.IdentityScaler.from_numpy
+    - _target_: experiments.kerass.layers.scaling.IdentityScaler.from_numpy
+    - _target_: experiments.kerass.layers.scaling.IdentityScaler.from_numpy
+    - _target_: experiments.kerass.layers.scaling.IdentityScaler.from_numpy
+    - _target_: experiments.kerass.layers.scaling.IdentityScaler.from_numpy
+
+# test_indexes:
+#   # - 0 # altieri sample index: 45
+#   - 18 # altieri sample index: 46
+#   # - 22 # altieri sample index: 47
+#   # - 23 # altieri sample index: 48
+#   # - 30 # altieri sample index: 49
+#   # - 31 # altieri sample index: 50
+#   - 39 # altieri sample index: 51
+#   # - 52 # altieri sample index: 57
+#   # - 58 # altieri sample index: 58
+#   - 60 # altieri sample index: 59
+#   # - 71 # altieri sample index: 60
+#   - 76 # altieri sample index: 61
+#   # - 101 # altieri sample index: 68
+#   # - 124 # altieri sample index: 69
+#   - 125 # altieri sample index: 70
+#   # - 138 # altieri sample index: 74
+#   - 152 # altieri sample index: 75
+#   # - 160 # altieri sample index: 76
+#   - 178 # altieri sample index: 77
+#   - 187 # altieri sample index: 82
+#   - 192 # altieri sample index: 83
+#   - 201 # altieri sample index: 84
+
+n_nodes: 5
+n_features: ${get_n_features:8,${params.dataset.use_time_features}}
+name: wind-nrel
+
+params:
+  meta:
+    dataset: ${dataset.name}
+
+  paths:
+    raw_dataset_path: dvc-stages-outputs/wind-nrel/raw/wind-nrel.npz
+    dataset_path: dvc-stages-outputs/wind-nrel/preprocessed.npz
+
+  prepare:
+    h: 24
+    p: 24
+    stride: 24
+
+  split:
+    seasonal_folds:
+      # We merge January and February of 2005 with the following spring season 
+      # since this winter seasonal fold is too short (only 59 days) 
+      # and we want to have ~90 days (3 months) for each seasonal fold.
+      # WINTER Jan 1, 2005 - Feb 28, 2005 (Non-leap year)
+      train:
+        - [winter, [0, 58]]     # Jan 1, 2005 - Feb 28, 2005
+        - [spring, [59, 150]]   # Mar 1, 2005 - May 31, 2005
+        - [summer, [151, 242]]  # Jun 1, 2005 - Aug 31, 2005
+        - [autumn, [243, 333]]  # Sep 1, 2005 - Nov 30, 2005
+        - [winter, [334, 423]]  # Dec 1, 2005 - Feb 28, 2006
+
+      non_train:
+        - [spring, [424, 515]]  # Mar 1, 2006 - May 31, 2006
+        - [summer, [516, 607]]  # Jun 1, 2006 - Aug 31, 2006
+        - [autumn, [608, 698]]  # Sep 1, 2006 - Nov 30, 2006
+        - [winter, [699, 729]]  # Dec 1, 2006 - Dec 31, 2006 
+
+dvc:
+  stages:
+    wind-nrel:
+      cmd: >-
+        python -m experiments.stages.preprocess.windnrel
+      deps:
+        - \${src}/stages/preprocess/windnrel.py
+        - \${paths.raw_dataset_path}
+      params:
+        - paths.raw_dataset_path
+        - paths.dataset_path
+      outs:
+        - \${paths.dataset_path}

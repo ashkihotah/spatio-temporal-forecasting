@@ -1,14 +1,10 @@
-file_deps:
-  - \${src}/kerass/layers/sequences/cells/spatio_temporal/HMoeAdapter.py
-  - \${src}/kerass/layers/routers/MoeRouter.py
+file_deps: ${concat_lists:${model.moe_routers.${.moe_router}.file_deps},"\${src}/kerass/layers/sequences/cells/spatio_temporal/adapters/HMoeAdapter.py","\${src}/kerass/layers/sequences/cells/spatio_temporal/adapters/CellAdapter.py"}
+
+moe_router: Shazeer
 
 cfg:
-  _target_: experiments.kerass.layers.sequences.cells.spatio_temporal.HMoeAdapter
-  moe_router:
-    _target_: experiments.kerass.layers.routers.MoeRouter
-    n_experts: 8
-    top_k: 3
-    aux_loss_weight: 0.01
-    z_loss_weight: 0.001
+  _target_: experiments.kerass.layers.sequences.cells.spatio_temporal.adapters.HMoeAdapter
+  moe_router: ${model.moe_routers.${..moe_router}.cfg}
+  return_routing_weights: true
 
-name: HMoE-
+name: ${model.moe_routers.${.moe_router}.name}-HMoE-

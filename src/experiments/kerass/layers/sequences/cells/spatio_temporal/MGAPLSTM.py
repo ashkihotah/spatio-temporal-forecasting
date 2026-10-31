@@ -6,7 +6,7 @@ from experiments.kerass.layers.gnn import instantiate_gnn_layer
 from .GAPLSTMCell import GAPLSTMCell
 from .AutoregressiveCell import AutoregressiveCell
 
-class GAPLSTMWithMemoryCell(keras.layers.Layer, AutoregressiveCell):
+class MGAPLSTM(keras.layers.Layer, AutoregressiveCell):
 
     def __init__(
         self,
@@ -65,6 +65,7 @@ class GAPLSTMWithMemoryCell(keras.layers.Layer, AutoregressiveCell):
     def build(self, input_shape: tuple[keras.KerasTensor, keras.KerasTensor]):
         self.cell.build(input_shape)
         self.input_feature_dim = self.cell.input_feature_dim
+        self.n_nodes = self.cell.n_nodes
 
         features_shape = input_shape[0]
         adj_shape = input_shape[1]
@@ -162,10 +163,10 @@ class GAPLSTMWithMemoryCell(keras.layers.Layer, AutoregressiveCell):
         m = i_m * memory_state + (1.0 - i_m) * g_m
         h = m * o_m
 
-        mem_gnn_loss = (
-            loss_ih + loss_im + loss_gh + loss_gm + loss_oh + loss_om
-        ) / 6.0
-        step_loss = step_loss + mem_gnn_loss
+        step_loss = (
+            (step_loss * 8.0) + loss_ih + loss_im 
+            + loss_gh + loss_gm + loss_oh + loss_om
+        ) / 14.0
 
         output = h
         log = {}

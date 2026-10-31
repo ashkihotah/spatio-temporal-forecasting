@@ -1,9 +1,9 @@
 import keras
 
 from experiments.kerass.layers.spatio_temporal.svd import apply_svd
-from .PPCellAdapter import PPCellAdapter
+from .CellAdapter import CellAdapter
 
-class SVDPPAdapter(PPCellAdapter):
+class SVDPPAdapter(CellAdapter):
 
     def __init__(
         self,

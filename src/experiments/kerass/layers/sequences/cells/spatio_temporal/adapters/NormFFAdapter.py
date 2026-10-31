@@ -1,8 +1,8 @@
 import keras
 
-from .PPCellAdapter import PPCellAdapter
+from .CellAdapter import CellAdapter
 
-class NormFFAdapter(PPCellAdapter):
+class NormFFAdapter(CellAdapter):
 
     def __init__(
         self, 

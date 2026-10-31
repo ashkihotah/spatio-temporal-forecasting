@@ -49,14 +49,18 @@ class GraphConv(keras.layers.Layer):
         self, inputs: tuple[keras.KerasTensor, keras.KerasTensor]
     ) -> keras.KerasTensor:
         features, adj = inputs
+        # features: (B, N, F)
+        # adj: (B, N, N)
 
+        # shape: (B, N, F) -> (B, N, C)
         output = keras.ops.matmul(features, self.kernel)
+        # shape: (B, N, C) -> (B, N, C)
         output = keras.ops.matmul(adj, output)
 
         if self.use_bias:
-            output = output + self.bias
+            output = output + self.bias # shape: (B, N, C)
             
         if self.activation is not None:
-            output = self.activation(output)
+            output = self.activation(output) # shape: (B, N, C)
             
         return output, keras.ops.zeros((), dtype=keras.backend.floatx())

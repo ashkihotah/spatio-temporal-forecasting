@@ -1,0 +1,5 @@
+outs:
+- md5: 9b1b05984f0f1c3af2ec264869911608
+  size: 328
+  hash: md5
+  path: closeness-wind-nrel.npy
