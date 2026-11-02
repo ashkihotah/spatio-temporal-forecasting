@@ -3,7 +3,7 @@
 model:
   moe_routers:
     default_args:
-      n_experts: 9
+      n_experts: 6
 
   gnns:
     MoE-GNN:

@@ -28,7 +28,7 @@ The following overrides are valid only with the following overrides: `"model/cel
 
 #### Different 
 ```bash
-"overrides/cell-input-data-distribution=different" "model/postprocessing=STEDConvolution,STReshapedHead,STSharedHead" "framework.keras.losses.mae.cfg.encoder_outputs=null"
+"overrides/cell-input-data-distribution=different" "model/postprocessing=STEDConvolution,STReshapedHead,STSharedHead" "framework.keras.losses.mae.cfg.encoder_outputs=null" apply_enc_adapter_to_decoder_cell=true
 ```
 
 #### Same 
@@ -38,7 +38,7 @@ The following overrides are valid only with the following overrides: `"model/cel
 
 ### Other
 ```bash
-"model/preprocessing=None,NormFF" params.dataset.use_time_features=True,False dataset=pv-italy,beijing-multisite-airquality
+"model/preprocessing=None,NormFF" params.dataset.use_time_features=True,False dataset=wind-nrel,pv-italy,beijing-multisite-airquality
 ```
 
 ### RNN Cell
@@ -99,11 +99,11 @@ The following overrides are valid only with the following overrides: `"model/cel
 
 # TODO
 
-1. try on wind-nrel
-2. try base keras hpo i.e. 
-    1. batch_size: 32, 64, 128, 256, 512, 1024
-    2. learning rate: 0.1, 0.01, 0.001, 0.0001
-    3. epochs: 10, 25, 50
-3. beijing gemini scalers
-4. try attention pe layers
-5. Try all other models: LSTM, GNN-LSTM, SVD-LSTM, GRU etc.
+- try base keras hpo i.e. 
+    - batch_size: 32, 64, 128, 256, 512, 1024
+    - learning rate: 0.1, 0.01, 0.001, 0.0001
+    - epochs: 10, 25, 50
+- beijing gemini scalers
+- Try all other models: LSTM, GNN-LSTM, SVD-LSTM, GRU etc.
+- rerunna tutte le GMoE da 6E
+- rerunna tutte le GMoE con filtro `"Shazeer-MMP-GMoE-|GAT|-|GCN|-|GCNSKIPCONN|-LSTM" in run.experiment` in pv-italy

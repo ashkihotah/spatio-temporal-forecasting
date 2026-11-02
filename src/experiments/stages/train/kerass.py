@@ -15,7 +15,7 @@ import keras
 from dvc_mlops.tracking.tensorflow import AsyncKerasCallback
 from dvc_mlops.producing import AsyncBufferedStageDumper
 
-from experiments.kerass.layers.scaling import ScalingLayer, KerasScaler
+from experiments.kerass.layers.scaling import IdentityScaler, ScalingLayer, KerasScaler
 from experiments.kerass.metrics import ValidationMetricWrapper
 from experiments.kerass.losses import DynamicLossMaskAnnealing
 from experiments.kerass.callbacks import StepAnnealingCallback
@@ -107,16 +107,23 @@ def get_fit_kwargs(
 def get_compile_metrics(
     metrics: dict, target_scalers: list[KerasScaler]
 ) -> dict:
-    for output_name, scaled_metrics in metrics.items():
-        raw_metrics = [
-            ValidationMetricWrapper(
-                metric=metric, target_scalers=target_scalers,
-                name=f"raw_{metric.name.split('scaled_')[-1]}"
-            )
-            for metric in scaled_metrics
-        ]
 
-        metrics[output_name] = scaled_metrics + raw_metrics
+    are_there_any_scalers = any(
+        not isinstance(scaler, IdentityScaler) 
+        for scaler in target_scalers
+    )
+
+    if are_there_any_scalers:
+        for output_name, scaled_metrics in metrics.items():
+            raw_metrics = [
+                ValidationMetricWrapper(
+                    metric=metric, target_scalers=target_scalers,
+                    name=f"raw_{metric.name.split('scaled_')[-1]}"
+                )
+                for metric in scaled_metrics
+            ]
+
+            metrics[output_name] = scaled_metrics + raw_metrics
 
     return metrics
 
