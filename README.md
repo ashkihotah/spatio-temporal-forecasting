@@ -53,28 +53,6 @@ The following overrides are valid only with the following overrides: `"model/cel
 "model/cell@model.encoder_cell=CMoE" "+overrides/CMoE=6E,9E,M6E,M9E"
 ```
 
-# All Models
-
-- MGAP-LSTM-(GCN)
-- MGAP-LSTM-(GCNSKIPCONN)
-- GAP-LSTM-(GCN)
-- GAP-LSTM-(GCNSKIPCONN)
-- MGAP-LSTM-(GAT) with skipconn and norm as hpo
-- GAP-LSTM-(GAT) with skipconn and norm as hpo
-
-- GMoE-MGAP-LSTM-(GCN)
-- GMoE-MGAP-LSTM-(GCNSKIPCONN)
-- GMoE-GAP-LSTM-(GCN)
-- GMoE-GAP-LSTM-(GCNSKIPCONN)
-- GMoE-MGAP-LSTM-(GAT) with skipconn and norm as hpo
-- GMoE-GAP-LSTM-(GAT) with skipconn and norm as hpo
-
-- LSTM
-
-- GNNPP-LSTM-(GCN)
-- SVDPP-LSTM
-- GRU
-
 # Altieri Experiments
 
 - NormFF, NoNorm (2)
@@ -104,6 +82,4 @@ The following overrides are valid only with the following overrides: `"model/cel
     - learning rate: 0.1, 0.01, 0.001, 0.0001
     - epochs: 10, 25, 50
 - beijing gemini scalers
-- Try all other models: LSTM, GNN-LSTM, SVD-LSTM, GRU etc.
-- rerunna tutte le GMoE da 6E
-- rerunna tutte le GMoE con filtro `"Shazeer-MMP-GMoE-|GAT|-|GCN|-|GCNSKIPCONN|-LSTM" in run.experiment` in pv-italy
+- Try all other models: GNN-LSTM, SVD-LSTM, GRU etc.
